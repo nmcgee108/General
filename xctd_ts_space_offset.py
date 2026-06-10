@@ -17,6 +17,7 @@ import gsw
 ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
 xctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/XCTD data/converted_xctd.nc"
 
+
 xctd_ds = xr.open_dataset(xctd_netcdf)
 ctd_ds = xr.open_dataset(ctd_netcdf)
 
@@ -65,9 +66,9 @@ def find_distance(lat1, lon1, lat2, lon2):
     return distance
 
 
-xctd_cast = 7
-dist_cutoff = 40
-offset = 0.05
+xctd_cast = 5
+dist_cutoff = 15
+offset = 0.00
 
 
 colormap = plt.colormaps['viridis']
@@ -107,24 +108,8 @@ for i in range(25,56):
     axes.set_xlim(32, 35)
 
 
-
-# # STEP 1: Identify the XCTD and CTD Deep Water (adjust bounds as necessary)
-# xctd_sal_deep, xctd_temp_deep = xctd_sal.T[xctd_cast-1][-500:],  xctd_temp.T[xctd_cast-1][-500:]
  
 axes.scatter(xctd_sal.T[xctd_cast-1]+offset, xctd_temp.T[xctd_cast-1], color = "red", s = 4)
-# axes.scatter(xctd_sal_deep, xctd_temp_deep, color = "red", s = 4)
-
-# # STEP 2: Calculate a reference temperature by taking the deep water average
-# xctd_dw_temp = np.nanmean(xctd_temp_deep)
-# axes.hlines(xctd_dw_temp, 33.5, 34.75, linestyle="dashed", color = "k")
-
-# print( )
-# print("Deep Water Reference Temp:", xctd_dw_temp)
-
-# # STEP 3: Calculate the average salinity of the CTD water near this temperature
-# for i in close_casts:
-#     pass
-
     
     
 cbar_ax = fig.add_axes([0.95,0.1,0.05,0.77])
@@ -134,7 +119,7 @@ cbar.set_label('Distance from XCTD [km]')
 axes.set_ylabel("CT [°C]")
 axes.set_xlabel("SA [g/kg]")
 
-axes.set_ylim(1, 3)
+axes.set_ylim(1, 2.5)
 axes.set_xlim(34,34.8)
 
 
