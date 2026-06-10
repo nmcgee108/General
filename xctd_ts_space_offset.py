@@ -14,8 +14,8 @@ import math
 import numpy as np
 import gsw
 
-ctd_netcdf = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
-xctd_netcdf = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/XCTD data/converted_xctd.nc"
+ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
+xctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/XCTD data/converted_xctd.nc"
 
 xctd_ds = xr.open_dataset(xctd_netcdf)
 ctd_ds = xr.open_dataset(ctd_netcdf)
@@ -30,12 +30,18 @@ ctd_nums = ctd_ds["CAST_NUM"].values
 
 
 xctd_depth = xctd_ds["depth"].values
-xctd_sal = xctd_ds["Salinity"].values
+xctd_pract_sal = xctd_ds["Salinity"].values
 xctd_temp = xctd_ds["Temperature"].values
 xctd_lats = xctd_ds["latitude"].values
 xctd_lons = xctd_ds["longitude"].values
 
-fig, axes = plt.subplots(1,1,figsize=(9, 8), sharey=True)
+depth2d = np.tile(xctd_depth[:, np.newaxis], (1, len(xctd_lats)))
+xctd_pres = gsw.p_from_z(-depth2d, xctd_lats)
+xctd_sal = gsw.SA_from_SP(xctd_pract_sal, xctd_pres, xctd_lons, xctd_lats)
+print('done')
+
+
+fig, axes = plt.subplots(1,1,figsize=(7, 6), sharey=True)
 
 def find_distance(lat1, lon1, lat2, lon2):
     
@@ -59,9 +65,9 @@ def find_distance(lat1, lon1, lat2, lon2):
     return distance
 
 
-xctd_cast = 9
-dist_cutoff = 20
-offset = 0.20
+xctd_cast = 7
+dist_cutoff = 40
+offset = 0.05
 
 
 colormap = plt.colormaps['viridis']
@@ -123,16 +129,16 @@ axes.scatter(xctd_sal.T[xctd_cast-1]+offset, xctd_temp.T[xctd_cast-1], color = "
     
 cbar_ax = fig.add_axes([0.95,0.1,0.05,0.77])
 cbar = fig.colorbar(sm, cax=cbar_ax)
-cbar.set_label('Distance from XCTD [km]', fontsize = 14)
+cbar.set_label('Distance from XCTD [km]')
 
 axes.set_ylabel("CT [°C]")
 axes.set_xlabel("SA [g/kg]")
 
-axes.set_ylim(-0.75, 3)
-axes.set_xlim(33.5,34.8)
+axes.set_ylim(1, 3)
+axes.set_xlim(34,34.8)
 
 
-axes.legend(title = "Closest Casts", fontsize = 14)
+axes.legend(title = "Closest Casts")
 
 fig.suptitle(f"XCTD Cast {xctd_cast} and Closest CTD casts"+"\nSA Offset = +"+str(offset))
 
