@@ -98,7 +98,7 @@ def pad_old_netcdf(old_filename, new_filename):
     )
         
     ds["LAT"] = ("cast", ncfile.variables["Latitude"][:])
-    ds["LON"] = ("cast", ncfile.variables["Longitude"][:])
+    ds["LON"] = ("cast", -ncfile.variables["Longitude"][:])
     ds["DATE"] = ("cast", ncfile.variables["Date"][:])
     ds["CAST_NUM"] = ("cast", ncfile.variables["Cast_Number"][:])
     ds["FLAG"] = ("cast", ncfile.variables["Flag"][:])
@@ -109,11 +109,11 @@ def pad_old_netcdf(old_filename, new_filename):
     print(f"{new_filename} complete")
 
 
-uc_patch_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
-dc_only_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/dc_only_dataset_new.nc"
-rbr_patch_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/rbr_patch_dataset_new.nc"
-uc_only_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/uc_only_dataset_new.nc"
-rbr_only_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/rbr_only_dataset_new.nc"
+uc_patch_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
+dc_only_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/dc_only_dataset_new.nc"
+rbr_patch_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/rbr_patch_dataset_new.nc"
+uc_only_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/uc_only_dataset_new.nc"
+rbr_only_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/rbr_only_dataset_new.nc"
 
 pad_old_netcdf(uc_patch_file, "uc_patch_dataset_padded.nc")
 pad_old_netcdf(dc_only_file, "dc_only_dataset_padded.nc")

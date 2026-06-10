@@ -68,12 +68,12 @@ print(adjusted_sal.T[2][45], xctd_sal.T[2][45])
 
 ds = xr.Dataset(
     data_vars={
-        "Absolute_Salinity": (["depth", "cast"], adjusted_sal),
-        "Practical_Salinity": (["depth", "cast"], xctd_pract_sal),
-        "Conservative_Temperature": (["depth", "cast"], xctd_cons_temp),
-        "Potential_Temperature": (["depth", "cast"], xctd_pot_temp),
-        "Potential_Density": (["depth", "cast"], xctd_pot_dens),
-        "Conductivity": (["depth", "cast"], xctd_cond),
+        "Absolute_Salinity": (["cast", "depth"], adjusted_sal.T),
+        "Practical_Salinity": (["cast", "depth"], xctd_pract_sal.T),
+        "Conservative_Temperature": (["cast", "depth"], xctd_cons_temp.T),
+        "Potential_Temperature": (["cast", "depth"], xctd_pot_temp.T),
+        "Potential_Density": (["cast", "depth"], xctd_pot_dens.T),
+        "Conductivity": (["cast", "depth"], xctd_cond.T),
     },
     coords={
         "depth": xctd_depth,

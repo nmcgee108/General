@@ -18,7 +18,8 @@ from pyproj import Geod
 
 
 
-ds = xr.open_dataset("/Users/nataliemcgee/Documents/Upernavik Project/Upernavik Data/BedMachineGreenland-v5.nc")
+ds = xr.open_dataset("/Users/nataliemcgee/Documents/Upernavik Data/Bathymetry Data/BedMachineGreenland-v5-002.nc")
+
 bed = ds['bed'].values
 x = ds['x'].values
 y = ds['y'].values
@@ -37,15 +38,14 @@ to_projected = pyproj.Transformer.from_crs(geodetic, stere, always_xy=True)
 
 
 # Define start and end coordinates
-start_lat, start_lon = 72.89, -54.7
-mid1_lat, mid1_lon = 72.89061111111111, -55.23407777777778
-end_lat, end_lon = 73.24633333333334, -58.31155555555556
+start_lon, start_lat = -63.1648, 74.5593
+end_lon, end_lat = -60.0573, 73.4334
 
 # Convert start/end to projected x/y
 x1, y1 = to_projected.transform(start_lon, start_lat)
-x2, y2 = to_projected.transform(mid1_lon, mid1_lat)
+#x2, y2 = to_projected.transform(mid1_lon, mid1_lat)
 #x3, y3 = to_projected.transform(mid2_lon, mid2_lat)
-x3, y3 = to_projected.transform(end_lon, end_lat)
+x2, y2 = to_projected.transform(end_lon, end_lat)
 
 
 # Sample points along the line
@@ -53,8 +53,8 @@ N = 500
 x_line1 = np.linspace(x1, x2, N)
 y_line1 = np.linspace(y1, y2, N)
 
-x_line2 = np.linspace(x2, x3, N)
-y_line2 = np.linspace(y2, y3, N)
+# x_line2 = np.linspace(x2, x3, N)
+# y_line2 = np.linspace(y2, y3, N)
 
 #x_line3 = np.linspace(x3, x4, N)
 #y_line3 = np.linspace(y3, y4, N)
@@ -63,29 +63,29 @@ y_line2 = np.linspace(y2, y3, N)
 bed_interp = RegularGridInterpolator((y, x), bed, bounds_error=False, fill_value=np.nan)
 
 bed_along_line1 = bed_interp(np.array([y_line1, x_line1]).T)
-bed_along_line2 = bed_interp(np.array([y_line2, x_line2]).T)
+#bed_along_line2 = bed_interp(np.array([y_line2, x_line2]).T)
 #bed_along_line3 = bed_interp(np.array([y_line3, x_line3]).T)
 
-#bed_along_full_line = bed_along_line1
-bed_along_full_line = np.concatenate((bed_along_line1, bed_along_line2))#, bed_along_line3)) # Combine bed data
+bed_along_full_line = bed_along_line1
+#bed_along_full_line = np.concatenate((bed_along_line1, bed_along_line2))#, bed_along_line3)) # Combine bed data
 
 # Compute distance along the line
 lons1, lats1 = to_geodetic.transform(x_line1, y_line1)
-lons2, lats2 = to_geodetic.transform(x_line2, y_line2)
+#lons2, lats2 = to_geodetic.transform(x_line2, y_line2)
 #lons3, lats3 = to_geodetic.transform(x_line3, y_line3)
 geod = Geod(ellps='WGS84')
 
-#lons,lats = lons1, lats1
-lons, lats = np.concatenate((lons1, lons2)), np.concatenate((lats1, lats2)) # Combine lats and lons
+lons,lats = lons1, lats1
+#lons, lats = np.concatenate((lons1, lons2)), np.concatenate((lats1, lats2)) # Combine lats and lons
 
 distances = [0]
 #for i in range(1, 3*N):
-for i in range(1, 2*N):
+for i in range(1, N):
     _, _, d = geod.inv(lons[i-1], lats[i-1], lons[i], lats[i])
     distances.append(distances[-1] + d / 1000)  # Convert to km
     
 bed_array = np.column_stack((distances, bed_along_full_line, lats, lons))
-np.savetxt('new_fjord_bathymetry1.csv', bed_array, delimiter=',', header='Distance_km,Bed_Elevation_m,Latitude,Longitude',
+np.savetxt('northern_trough_bathymetry.csv', bed_array, delimiter=',', header='Distance_km,Bed_Elevation_m,Latitude,Longitude',
     comments='')
 print("file saved. format is distance, depth, lat, lon")
 
@@ -143,8 +143,8 @@ ctd_dist_along_section=find_closest_points(ctd_lats, ctd_lons, lats, lons, dista
 # Plot the cross-section
 plt.figure(figsize=(10, 5))
 plt.plot(distances, bed_along_full_line, color='steelblue')
-plt.vlines(ctd_dist_along_section, -800, 0, color = 'k')
-plt.scatter(ctd_dist_along_section, np.zeros_like(ctd_dist_along_section), marker = "^", color = "red")
+#plt.vlines(ctd_dist_along_section, -800, 0, color = 'k')
+#plt.scatter(ctd_dist_along_section, np.zeros_like(ctd_dist_along_section), marker = "^", color = "red")
 plt.fill_between(distances, bed_along_full_line, min(bed_along_full_line)-50) #shade below the bed
 plt.gca().invert_xaxis()
 plt.xlabel("Distance (km)") 
