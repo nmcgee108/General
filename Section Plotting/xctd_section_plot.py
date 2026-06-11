@@ -16,6 +16,8 @@ import math
 import pandas as pd
 from matplotlib.lines import Line2D
 
+plt.rcParams['font.size']=14
+
 xctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/XCTD data/adjusted_xctd.nc"
 ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
 bathymetry_file = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Bathymetry Data/northern_trough_bathymetry.csv")
@@ -175,6 +177,8 @@ custom_handles = [
 
 ax.legend(handles=custom_handles, loc='lower right')
 
+ax.text(5, -700, "North")
+
 ax.set_ylim(-750, 70)
 ax.set_xlim(0, 155)
 ax.set_ylabel("Depth [m]")
@@ -214,6 +218,8 @@ for i in range(len(section['distance'])):
     if section["cast_types"][i]=="ctd":
         ax.vlines(section['distance'][i], -section['max_depth'][i], 20, zorder = 3, color="k", linewidth = 0.5)
         ax.scatter(section['distance'][i], 20, c="red", marker = "o", s = 50, zorder = 4)
+        
+ax.text(5, -700, "North")
     
 ax.plot(section_distances, bed, color = "gray")
 
