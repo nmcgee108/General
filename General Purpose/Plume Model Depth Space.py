@@ -11,11 +11,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from full_plume import run_plume
 from analytical_plume_gen import analytical_plume
-import csv
 
 
 # Load the CTD NetCDF dataset
-ctd_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
+ctd_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
 
 
 with Dataset(ctd_file, 'r') as ncfile:
@@ -25,6 +24,7 @@ with Dataset(ctd_file, 'r') as ncfile:
     depth_bin = np.ma.filled(ncfile.variables['Depth Bin'][:], np.nan)
     SA = np.ma.filled(ncfile.variables['Absolute Salinity'][:], np.nan)
     CT = np.ma.filled(ncfile.variables['Conservative Temp'][:], np.nan)
+
 
     
 #-----------------------------
