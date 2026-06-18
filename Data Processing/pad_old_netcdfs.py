@@ -92,9 +92,10 @@ def pad_old_netcdf(old_filename, new_filename):
             "FLUORESCENCE": (["cast", "depth"], FLUOR_aligned)
         },
         coords={
-            "cast": np.arange(n_casts),
+            "profile": np.arange(n_casts),
             "depth": np.arange(max_len),
         },
+        attrs={}
     )
         
     ds["LAT"] = ("cast", ncfile.variables["Latitude"][:])

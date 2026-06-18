@@ -102,7 +102,7 @@ axes[1].plot(sol["Sa"], sol['z'], color = "gray", label = "Ambient (stratified)"
 axes[1].plot(sol1["Sa"], sol1['z'], color = "black", label = "Ambient (unstratified)", linestyle = "dotted")
 #axes[1].vlines(S_AW, min(sol['z']), max(sol['z']), color = "gray", linestyle ="dashed", label = "Ambient (Analytic Model)")
 #axes[1].scatter(sol["S"][-1], sol['z'][-1], color ="darkblue", marker = "s", label = "Full Model Output")
-#axes[1].scatter(Splume, max(sol['z']), color = "darkviolet", label = "Analytic Model Output", marker = "s")
+axes[1].scatter(Splume, max(sol['z']), color = "darkviolet", label = "Analytic Model Output", marker = "s")
 #axes[1].scatter(Splume*0.59 + S_FPW*0.41, max(sol['z']), marker = "^", s = 80, color = "darkviolet", label = "Modified Analytic Output")
 axes[1].set_xlabel("Absolute Salinity [g/kg]", fontsize = 13)
 axes[1].grid(True)

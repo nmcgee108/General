@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import math
 
-ctd_netcdf = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
-xctd_netcdf = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/XCTD data/converted_xctd.nc"
+ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
+xctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/XCTD data/adjusted_xctd.nc"
 
 xctd_ds = xr.open_dataset(xctd_netcdf)
 ctd_ds = xr.open_dataset(ctd_netcdf)
@@ -27,8 +27,8 @@ ctd_nums = ctd_ds["CAST_NUM"].values
 
 
 xctd_depth = xctd_ds["depth"].values
-xctd_sal = xctd_ds["Salinity"].values
-xctd_temp = xctd_ds["Temperature"].values
+xctd_sal = xctd_ds["Absolute_Salinity"].values
+xctd_temp = xctd_ds["Conservative_Temperature"].values
 xctd_lats = xctd_ds["latitude"].values
 xctd_lons = xctd_ds["longitude"].values
 
@@ -71,7 +71,7 @@ for i in range(25,56):
     dist = find_distance(xctd_lats[xctd_cast-1], xctd_lons[xctd_cast-1], ctd_lats[i], ctd_lons[i])
     color = colormap(norm(dist))
     
-    if dist > 60:     # only plot the casts within 50 km
+    if dist > 30:     # only plot the casts within 50 km
         continue
 
     print(ctd_nums[i],",",dist)
@@ -84,12 +84,15 @@ for i in range(25,56):
     
     
     
-axes[0].plot(xctd_sal.T[xctd_cast-1]+0.2, -xctd_depth, color = "red")
-axes[1].plot(xctd_temp.T[xctd_cast-1], -xctd_depth, color = "red")
+axes[0].plot(xctd_sal[xctd_cast-1]+0.2, -xctd_depth, color = "red")
+axes[1].plot(xctd_temp[xctd_cast-1], -xctd_depth, color = "red")
 
 cbar_ax = fig.add_axes([0.95,0.1,0.05,0.77])
 cbar = fig.colorbar(sm, cax=cbar_ax)
 cbar.set_label('Distance from XCTD [km]', fontsize = 14)
+
+axes[1].set_xlim(-0.5, 1)
+axes[1].set_ylim(-150, -25)
 
 axes[0].set_ylabel("Depth [m]")
 axes[0].set_xlabel("SA [g/kg]")
