@@ -14,7 +14,7 @@ import matplotlib.colors as mcolors
 import numpy as np
 import gsw
 
-uc_patch_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
+uc_patch_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
 
 ncfile = Dataset(uc_patch_file, 'r')
 
@@ -106,7 +106,8 @@ for i in range(9):
     axes[0,0].axhspan(-425, -150, color = "lightskyblue", alpha = 0.06)
     axes[0,0].axhspan(-250, -130, color = "pink", alpha = 0.06)
     axes[0,1].grid(True)
-    axes[0,1].set_xlim(31,35)
+    axes[0,1].set_xlim(28,35)
+    axes[0,1].set_ylim(-100, 0)
     
     
 

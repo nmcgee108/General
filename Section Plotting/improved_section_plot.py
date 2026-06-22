@@ -20,11 +20,8 @@ plt.rcParams['font.size'] = 20
 
 
 # Load the CSV file into a pandas DataFrame
-try:
-    bath_df = pd.read_csv('/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/new_fjord_bathymetry1.csv')
-except FileNotFoundError:
-    print("Error: CSV file not found.")
-    exit()
+bath_df = pd.read_csv('/Users/nataliemcgee/Documents/Upernavik Data/Bathymetry Data/new_fjord_bathymetry1.csv')
+
 
 # Extract columns for plotting
 section_distances = bath_df['Distance_km']  
@@ -111,7 +108,7 @@ def find_closest_points(ctd_lats, ctd_lons, section_lats, section_lons, section_
 ctd_dist_along_section=find_closest_points(ctd_lats, ctd_lons, section_lats, section_lons, section_distances) #all distances starting with cast 1 to cast 8 in cast order
 
 
-uc_patch_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
+uc_patch_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
 
 
 with Dataset(uc_patch_file, 'r') as ncfile:
@@ -181,7 +178,8 @@ for idx, i in enumerate(range(start_cast-1, end_cast)):
     oxy_i    = np.asarray(oxy[i])
     fluor_i  = np.asarray(fluor[i])
 
-    SA_aligned[idx, indices]     = savgol_filter(SA_i, window_length=15, polyorder=2)
+    #SA_aligned[idx, indices]     = savgol_filter(SA_i, window_length=15, polyorder=2)
+    SA_aligned[idx, indices]     = SA_i
     CT_aligned[idx, indices]     = savgol_filter(CT_i, window_length=15, polyorder=2)
     theta_aligned[idx, indices]  = savgol_filter(theta_i, window_length=15, polyorder=2)
     turb_aligned[idx, indices]   = savgol_filter(turb_i, window_length=10, polyorder=2)
@@ -318,8 +316,8 @@ def plot_section(section_dataset, var_name, label,
     # Add cast vertical lines at actual max sample depth
     for i, cast in enumerate(section.cast.values):
         ax.vlines(dist.values[i], 0, -max_depths[int(cast)], color='k', linestyle='-')
-        plt.scatter(dist.values[i], 15, marker = "^", color = "red")
-        plt.text(dist.values[i]+1, 40, cast)
+        plt.scatter(dist.values[i], 5, marker = "^", color = "red")
+        plt.text(dist.values[i]+1, 10, cast)
     
     plt.tick_params(axis='both', which='major')
 
@@ -354,8 +352,8 @@ def plot_section(section_dataset, var_name, label,
         #ax.clabel(cs_ref, inline=True, fmt="%.1f", fontsize=9, inline_spacing=10)
     
         ax.vlines(dist_center, 0, -max_depths[8], color='k', linestyle='-')
-        plt.scatter(dist_center, 15, marker = "^", color = "red")
-        plt.text(dist_center+1, 40, "9")
+        plt.scatter(dist_center, 5, marker = "^", color = "red")
+        plt.text(dist_center+1, 10, "9")
 
 
     ax.plot(section_distances, bed, color="gray")
@@ -363,10 +361,12 @@ def plot_section(section_dataset, var_name, label,
     ax.set_xlim(-0.2, 110)
     ax.invert_xaxis()
 
-    plt.text(77, -1020, "Mouth")
-    plt.text(15, -1020, "Glacier")
-    plt.text(108, -700, "Shelf")
-    ax.set_ylim(-1050, 150)
+    # plt.text(77, -1020, "Mouth")
+    # plt.text(15, -1020, "Glacier")
+    # plt.text(108, -700, "Shelf")
+    #ax.set_ylim(-1050, 150)
+    ax.set_ylim(-200, 50)
+    ax.set_xlim(100, 0)
     ax.set_xlabel("Distance from Glacier [km]")
     ax.set_ylabel("Depth [m]")
     #ax.set_title(f"{var_name} Section Upernavik Fjord", fontsize=20)
@@ -380,8 +380,8 @@ plot_section(section, "Absolute Salinity", "Absolute Salinity [g/kg]",
                  reference_cast=9,
                  cmap='viridis', 
                  levels=200, 
-                 vmin = 30.55,
-                 vmax = 34.8,
+                 vmin = 29,
+                 vmax = 34.5,
                  gamma = 1,
                  sigma_levels=[26.5, 27, 27.5])
 
