@@ -45,9 +45,9 @@ start_lon, start_lat = section_lons[0], section_lats[0]
 end_lon, end_lat = section_lons.iloc[-1], section_lats.iloc[-1]
 
 # Extract nutrient data
-nitrate_value = pd.to_numeric(nutrients_file['NO3'][1:42])
-sample_cast = nutrients_file['St#'][1:42]
-sample_depth = -pd.to_numeric(nutrients_file['Depth  '][1:42])
+nitrate_value = pd.to_numeric(nutrients_file['NO3'][1:41])
+sample_cast = nutrients_file['St#'][1:41]
+sample_depth = -pd.to_numeric(nutrients_file['Depth  '][1:41])
 
 
 
@@ -103,11 +103,24 @@ section = xr.Dataset(
 
 section = section.sortby("distance")    # Sort by distance
 
-######################
+
+########################################################################################
 # Plot salinity section
+########################################################################################
 
 SA_min = 32
 SA_max = 35
+
+whole_depth_sal = True  ## ENTER WHETHER WHOLE DEPTH OR TOP SEVERAL METERS
+
+if whole_depth_sal == True: 
+    text_height = 60
+    triangle_height = 40
+
+else: 
+    text_height = 20
+    triangle_height = 15
+
 
 # Build meshgrid
 X, Y = np.meshgrid(section["distance"], -section["depth"])
@@ -130,37 +143,60 @@ ax.clabel(cs, inline=True, manual=label_positions, fmt='%.2f', inline_spacing = 
 plt.tick_params(axis='both', which='major')
 
 for i in range(len(section['distance'])):
-
-    ax.vlines(section['distance'][i], -section['max_depth'][i], 20, zorder = 3, color="k", linewidth = 0.5)
-    ax.scatter(section['distance'][i], 20, c="red", marker = "o", s = 50, zorder = 4)
-    ax.text(section['distance'][i]+1, 40, str(section['cast_nums'][i].values))
+    ax.vlines(section['distance'][i], -section['max_depth'][i], triangle_height, zorder = 3, color="k", linewidth = 0.5)
+    ax.scatter(section['distance'][i], triangle_height, c="k", marker = "^", s = 50, zorder = 4)
+    ax.text(section['distance'][i]+1, text_height, str(section['cast_nums'][i].values))
 
 
 ax.plot(section_distances, bed, color = "gray")
+
 ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=0)
 
-ax.text(12, -970, "Glacier")
-ax.text(98, -970, "Shelf")
+if whole_depth_sal == True: 
+    ax.text(12, -970, "Glacier")
+    ax.text(98, -970, "Shelf")
 
-ax.set_ylim(-1000, 100)
-ax.set_xlim(0, 100)
+    ax.set_ylim(-1000, 120)
+    ax.set_xlim(0, 100)
+    
+
+else: 
+    ax.set_ylim(-200, 40)
+    ax.set_xlim(5, 92)
+
+
 ax.invert_xaxis()
 ax.set_ylabel("Depth [m]")
 ax.set_xlabel("Distance Along Section [km]")
 
-######################
+########################################################################################
 # Plot temp section
+########################################################################################
 
 T_min = -2
-T_max = 4
+T_max = 6.5
+
+whole_depth_temp = True  ## ENTER WHETHER WHOLE DEPTH OR TOP SEVERAL METERS
+
+if whole_depth_temp == True: 
+    text_height = 60
+    triangle_height = 40
+    nitrate_max = 18
+
+else: 
+    text_height = 20
+    triangle_height = 15
+    nitrate_max = 12.5
+
+        
 
 # Build meshgrid
 X, Y = np.meshgrid(section["distance"], -section["depth"])
 
-levels = np.linspace(-2, 5, 200)
+levels = np.linspace(T_min, T_max, 300)
 
 fig, ax = plt.subplots(figsize=(12, 6))
-cf = ax.contourf(X, Y, section["Conservative Temperature"].T, levels=levels, norm=PowerNorm(gamma=1), cmap='RdBu_r')
+cf = ax.contourf(X, Y, section["Conservative Temperature"].T, levels=levels, norm=PowerNorm(gamma=0.75), cmap='RdBu_r')
 cbar = plt.colorbar(cf, ax=ax, format="%.2f")
 cbar.set_label("Conservative Temperature [°C]", labelpad=15)
 
@@ -175,38 +211,45 @@ ax.clabel(cs, inline=True, manual=label_positions, fmt='%.2f', inline_spacing = 
 plt.tick_params(axis='both', which='major')
 
 for i in range(len(section['distance'])):
-
-    ax.vlines(section['distance'][i], -section['max_depth'][i], 20, zorder = 3, color="k", linewidth = 0.5)
-    ax.scatter(section['distance'][i], 30, c="k", marker = "^", s = 50, zorder = 4)
-    ax.text(section['distance'][i]+1, 50, str(section['cast_nums'][i].values))
+    ax.vlines(section['distance'][i], -section['max_depth'][i], triangle_height, zorder = 3, color="k", linewidth = 0.5)
+    ax.scatter(section['distance'][i], triangle_height, c="k", marker = "^", s = 50, zorder = 4)
+    ax.text(section['distance'][i]+1, text_height, str(section['cast_nums'][i].values))
     
     
 ### Plot nutrient sample values:
     
 colormap = plt.colormaps['YlGn']
-norm = mcolors.Normalize(vmin=0, vmax=18)
+norm = mcolors.Normalize(vmin=0, vmax=nitrate_max)
 sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
 
-for j in range(len(nitrate_value), 0, -1):
+for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
     color = colormap(norm(nitrate_value[j]))
     ax.scatter(ctd_distances[int(sample_cast[j])-1], sample_depth[j], color=color, edgecolor = 'k', s= 50, zorder=4)
+
     
 cbar_ax = fig.add_axes([0.95,0.1,0.02,0.78])
 cbar = fig.colorbar(sm, cax=cbar_ax)
 cbar.set_label('Nitrate [µmol N-NO3/L]', fontsize = 14)
     
-####
-    
+#################################
     
 ax.plot(section_distances, bed, color = "gray")
 
 ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=0)
 
-ax.text(12, -970, "Glacier")
-ax.text(98, -970, "Shelf")
+if whole_depth_temp == True: 
+    ax.text(12, -970, "Glacier")
+    ax.text(98, -970, "Shelf")
 
-ax.set_ylim(-1000, 100)
-ax.set_xlim(0, 100)
+    ax.set_ylim(-1000, 120)
+    ax.set_xlim(0, 100)
+
+
+else: 
+    ax.set_ylim(-200, 40)
+    ax.set_xlim(5, 92)
+
+
 ax.invert_xaxis()
 ax.set_ylabel("Depth [m]")
 ax.set_xlabel("Distance Along Section [km]")
