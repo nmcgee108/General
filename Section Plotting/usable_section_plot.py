@@ -14,13 +14,25 @@ from scipy.signal import savgol_filter
 from matplotlib.colors import PowerNorm
 import math
 import pandas as pd
+import matplotlib.colors as mcolors
 
 plt.rcParams['font.size']=14
 
 ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
 bathymetry_file = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Bathymetry Data/new_fjord_bathymetry1.csv")
+nutrients_file = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Nutrients/NutrientsUS2024_plotting.csv", encoding="latin-1")
+
 
 ctd_ds = xr.open_dataset(ctd_netcdf)
+
+ctd_depth = ctd_ds["depth"].values
+ctd_sal = ctd_ds["SAL_ABSOLUTE"].values
+ctd_temp = ctd_ds["CONSERVATIVE_TEMP"].values
+ctd_lats = ctd_ds["LAT"].values
+ctd_lons = ctd_ds["LON"].values
+ctd_castnums = ctd_ds["cast"].values +1
+
+sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
 
 
 # Extract bathymetry section columns for plotting
@@ -32,14 +44,12 @@ section_lons = bathymetry_file['Longitude']
 start_lon, start_lat = section_lons[0], section_lats[0]
 end_lon, end_lat = section_lons.iloc[-1], section_lats.iloc[-1]
 
-ctd_depth = ctd_ds["depth"].values
-ctd_sal = ctd_ds["SAL_ABSOLUTE"].values
-ctd_temp = ctd_ds["CONSERVATIVE_TEMP"].values
-ctd_lats = ctd_ds["LAT"].values
-ctd_lons = ctd_ds["LON"].values
-ctd_castnums = ctd_ds["cast"].values +1
+# Extract nutrient data
+nitrate_value = pd.to_numeric(nutrients_file['NO3'][1:42])
+sample_cast = nutrients_file['St#'][1:42]
+sample_depth = -pd.to_numeric(nutrients_file['Depth  '][1:42])
 
-sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
+
 
 def find_distance(lat1, lon1, lat2, lon2):
 
@@ -92,7 +102,6 @@ section = xr.Dataset(
         "depth": ctd_depth})
 
 section = section.sortby("distance")    # Sort by distance
-
 
 ######################
 # Plot salinity section
@@ -168,8 +177,25 @@ plt.tick_params(axis='both', which='major')
 for i in range(len(section['distance'])):
 
     ax.vlines(section['distance'][i], -section['max_depth'][i], 20, zorder = 3, color="k", linewidth = 0.5)
-    ax.scatter(section['distance'][i], 20, c="red", marker = "o", s = 50, zorder = 4)
-    ax.text(section['distance'][i]+1, 40, str(section['cast_nums'][i].values))
+    ax.scatter(section['distance'][i], 30, c="k", marker = "^", s = 50, zorder = 4)
+    ax.text(section['distance'][i]+1, 50, str(section['cast_nums'][i].values))
+    
+    
+### Plot nutrient sample values:
+    
+colormap = plt.colormaps['YlGn']
+norm = mcolors.Normalize(vmin=0, vmax=18)
+sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
+
+for j in range(len(nitrate_value), 0, -1):
+    color = colormap(norm(nitrate_value[j]))
+    ax.scatter(ctd_distances[int(sample_cast[j])-1], sample_depth[j], color=color, edgecolor = 'k', s= 50, zorder=4)
+    
+cbar_ax = fig.add_axes([0.95,0.1,0.02,0.78])
+cbar = fig.colorbar(sm, cax=cbar_ax)
+cbar.set_label('Nitrate [µmol N-NO3/L]', fontsize = 14)
+    
+####
     
     
 ax.plot(section_distances, bed, color = "gray")
