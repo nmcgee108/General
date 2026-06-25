@@ -89,7 +89,7 @@ sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
 temps = []
 sals = []
 
-for i in range(9):
+for i in range(20):
     
     dist = find_distance(lat[i], lon[i])
     color = colormap(norm(dist))

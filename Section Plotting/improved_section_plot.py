@@ -316,10 +316,15 @@ def plot_section(section_dataset, var_name, label,
     # Add cast vertical lines at actual max sample depth
     for i, cast in enumerate(section.cast.values):
         ax.vlines(dist.values[i], 0, -max_depths[int(cast)], color='k', linestyle='-')
-        plt.scatter(dist.values[i], 5, marker = "^", color = "red")
-        plt.text(dist.values[i]+1, 10, cast)
+        plt.scatter(dist.values[i], 15, marker = "^", color = "red")
+        plt.text(dist.values[i]+1, 40, cast)
     
     plt.tick_params(axis='both', which='major')
+    
+    
+    
+    
+    
 
     #########
     # Add shelf cast for reference
@@ -351,9 +356,9 @@ def plot_section(section_dataset, var_name, label,
         ax.contour(X_ref, Y_ref, sigma_ref, levels=sigma_levels, colors='white', linewidths=1)
         #ax.clabel(cs_ref, inline=True, fmt="%.1f", fontsize=9, inline_spacing=10)
     
-        ax.vlines(dist_center, 0, -max_depths[8], color='k', linestyle='-')
-        plt.scatter(dist_center, 5, marker = "^", color = "red")
-        plt.text(dist_center+1, 10, "9")
+        ax.vlines(dist_center, 0, -max_depths[9], color='k', linestyle='-')
+        plt.scatter(dist_center, 15, marker = "^", color = "red")
+        plt.text(dist_center+1, 40, "9")
 
 
     ax.plot(section_distances, bed, color="gray")
@@ -361,12 +366,10 @@ def plot_section(section_dataset, var_name, label,
     ax.set_xlim(-0.2, 110)
     ax.invert_xaxis()
 
-    # plt.text(77, -1020, "Mouth")
-    # plt.text(15, -1020, "Glacier")
-    # plt.text(108, -700, "Shelf")
-    #ax.set_ylim(-1050, 150)
-    ax.set_ylim(-200, 50)
-    ax.set_xlim(100, 0)
+    plt.text(77, -1020, "Mouth")
+    plt.text(15, -1020, "Glacier")
+    plt.text(108, -700, "Shelf")
+    ax.set_ylim(-1050, 150)
     ax.set_xlabel("Distance from Glacier [km]")
     ax.set_ylabel("Depth [m]")
     #ax.set_title(f"{var_name} Section Upernavik Fjord", fontsize=20)

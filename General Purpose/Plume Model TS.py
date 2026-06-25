@@ -16,7 +16,7 @@ from full_plume import run_plume
 from analytical_plume_gen import analytical_plume
 
 # Load the CTD NetCDF dataset
-ctd_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
+ctd_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
 
 with Dataset(ctd_file, 'r') as ncfile:
     
@@ -32,9 +32,9 @@ with Dataset(ctd_file, 'r') as ncfile:
 # THINGS TO ENTER
 #-----------------------------
 cast_num = 3
-plume_depth = 659
+plume_depth = 135
 Q_discharge = 60 # subglacial discharge (m3/s)
-width = 500 # (m)
+width = 400 # (m)
 
 #-----------------------------
 # Full plume model
@@ -70,6 +70,7 @@ Tplume, Splume, AWp, SGDp, SMWp, Q_AW, Q_SMW = analytical_plume(T_AW=T_AW,
                                                                 S_AW=S_AW,
                                                                 Q_SGD=Q_discharge,
                                                                 h_gl=plume_depth,
+                                                                alpha = alpha,
                                                                 w=width)
 
 #---------------------------------------------------------
@@ -128,7 +129,7 @@ def melting_line(x):
     return slope*x+T_ice_eff
 
 # Create figure and custom layout: 2 plots + 1 for colorbar
-fig, axes = plt.subplots(1, 1, figsize=(7, 6))  # Slightly wider to accommodate colorbar
+fig, axes = plt.subplots(1, 1, figsize=(9, 6))  # Slightly wider to accommodate colorbar
 
 
 ######### fjord plot ########
@@ -192,9 +193,9 @@ axes.scatter(34.4352518, 2.0476521400000003, marker="*", s=40, color="red")
 axes.set_title(f"Plume Depth = {plume_depth} m")
 axes.set_xlabel("Absolute Salinity [g/kg]")
 axes.set_ylabel("Conservative Temperature [°C]")
-axes.set_xlim(33.5, 35)
+axes.set_xlim(32, 35)
 axes.set_ylim(-0.2, 3.5)
-axes.legend(loc="lower right")
+axes.legend()
 
 ########### Shared Colorbar ########
 # Create a dedicated axis for the colorbar
