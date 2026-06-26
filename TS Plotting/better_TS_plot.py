@@ -55,12 +55,14 @@ def find_distance(lat1, lon1, lat2, lon2):
     return distance
 
 # Calculate the distance of each cast from the innermost station
-lon_ref, lat_ref = ctd_lons[3],ctd_lats[3] # Innermost station is cast 4 (index 3)
+lon_ref, lat_ref = ctd_lons[2],ctd_lats[2] # Innermost station is cast 4 (index 2)
     
 ctd_distances = []
 
-for i in range(len(ctd_castnums)):   
-    ctd_distances.append(find_distance(ctd_lats[i], ctd_lons[i], lat_ref, lon_ref))
+for i in range(len(ctd_castnums)):  
+    distance = find_distance(ctd_lats[i], ctd_lons[i], lat_ref, lon_ref)
+    ctd_distances.append(distance)
+    print(distance)
 
 
 max_dist = max(ctd_distances) 
@@ -134,7 +136,9 @@ sm_nitrate = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
 
 for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
     index = np.where(ctd_castnums==sample_cast[j])[0]
+
     index = int(index[0])
+    print(sample_cast[j], ctd_castnums[index])
     sal = ctd_sal[index][-sample_depth[j]]
     temp = ctd_temp[index][-sample_depth[j]]
     #color = colormap(norm(nitrate_value[j]))
@@ -142,7 +146,7 @@ for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
     
 
     color = dist_colormap(dist_norm(ctd_distances[index]))
-    axes.scatter(sal, temp, color=color, marker = "o", edgecolor = 'k', s=nitrate_value[j]*15, zorder=4)
+    axes.scatter(sal, temp, color=color, marker = "o", edgecolor = 'k', s=nitrate_value[j]*15+15, zorder=4)
     
 # cbar_ax = fig.add_axes([0.87,0.1,0.021,0.78])
 # cbar = fig.colorbar(sm_nitrate, cax=cbar_ax)
