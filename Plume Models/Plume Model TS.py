@@ -32,9 +32,9 @@ with Dataset(ctd_file, 'r') as ncfile:
 # THINGS TO ENTER
 #-----------------------------
 cast_num = 3
-plume_depth = 135
-Q_discharge = 60 # subglacial discharge (m3/s)
-width = 400 # (m)
+plume_depth = 550
+Q_discharge = 50 # subglacial discharge (m3/s)
+width = 200 # (m)
 
 #-----------------------------
 # Full plume model
@@ -59,6 +59,8 @@ if max(depth[cast_num-1])<plume_depth:
     Na = np.insert(Na, 0, 10)
 
 sol=run_plume(zi, xi, Ta, Sa, Na, Q0, alpha)
+
+print(sol["zNB"])
 
 #-----------------------------
 # Analytical plume model
