@@ -115,7 +115,7 @@ section = section.sortby("distance")    # Sort by distance
 # Plot salinity section
 ########################################################################################
 
-SA_min = 32
+SA_min = 30
 SA_max = 35
 
 whole_depth_sal = False  ## ENTER WHETHER WHOLE DEPTH OR TOP SEVERAL METERS
@@ -132,10 +132,10 @@ else:
 # Build meshgrid
 X, Y = np.meshgrid(section["distance"], -section["depth"])
 
-levels = np.linspace(32, 35, 200)
+levels = np.linspace(SA_min, SA_max, 200)
 
 fig, ax = plt.subplots(figsize=(12, 6))
-cf = ax.contourf(X, Y, section["Absolute Salinity"].T, levels=levels, norm=PowerNorm(gamma=1), cmap='PuBuGn', vmin=SA_min, vmax=SA_max)
+cf = ax.contourf(X, Y, section["Absolute Salinity"].T, levels=levels, norm=PowerNorm(gamma=1.3), cmap='BuPu_r', vmin=SA_min, vmax=SA_max)
 cbar = plt.colorbar(cf, ax=ax, format="%.2f")
 cbar.set_label("Absolute Salinity [g/kg]", labelpad=15)
 
