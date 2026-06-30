@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 22 14:40:14 2026
+Created on Tue Jun 30 11:18:46 2026
 
 @author: nataliemcgee
 """
@@ -19,7 +19,7 @@ import matplotlib.colors as mcolors
 plt.rcParams['font.size']=14
 
 ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
-bathymetry_file = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Bathymetry Data/new_fjord_bathymetry1.csv")
+bathymetry_file = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Bathymetry Data/trough_section_bathymetry1.csv")
 nutrients_file = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Nutrients/NutrientsUS2024_plotting.csv", encoding="latin-1")
 
 
@@ -49,9 +49,15 @@ start_lon, start_lat = section_lons[0], section_lats[0]
 end_lon, end_lat = section_lons.iloc[-1], section_lats.iloc[-1]
 
 # Extract nutrient data
-nitrate_value = pd.to_numeric(nutrients_file['NO3'][1:41])
-sample_cast = nutrients_file['St#'][1:41]
-sample_depth = -pd.to_numeric(nutrients_file['Depth  '][1:41])
+start_row, end_row = 41, 94
+
+nitrate_value = pd.to_numeric(nutrients_file['NO3'].iloc[start_row:end_row])
+sample_cast = nutrients_file['St#'].iloc[start_row:end_row]
+sample_depth = -pd.to_numeric(nutrients_file['Depth  '].iloc[start_row:end_row])
+
+nitrate_value = nitrate_value.reset_index(drop=True)
+sample_cast = sample_cast.reset_index(drop=True)
+sample_depth = sample_depth.reset_index(drop=True)
 
 
 
@@ -91,8 +97,8 @@ for i in range(len(ctd_castnums)):
     else: ctd_maxdepths.append(0)
 
 
-start_cast = 2
-end_cast = 9
+start_cast = 11
+end_cast = 19
             
 section = xr.Dataset(
     data_vars={
@@ -130,6 +136,7 @@ else:
     triangle_height = 15
     nitrate_max = 12.5
 
+
 # Build meshgrid
 X, Y = np.meshgrid(section["distance"], -section["depth"])
 
@@ -143,9 +150,9 @@ cbar.set_label("Absolute Salinity [g/kg]", labelpad=15)
 # Overlay sigma0 contours
 sigma_levels = [26, 26.5, 27, 27.5, 28]
 smoothed_sigma = savgol_filter(section["Potential Density Anomaly"], window_length=15, polyorder=1)
-cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='white', linewidths=1)
+cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='darkslategrey', linewidths=0.7)
 
-label_positions = [(70, -400), (70, -100), (40, -70), (18, -30)]
+label_positions = [(48, -390), (50, -100), (50, -70), (65, -10)]
 ax.clabel(cs, inline=True, manual=label_positions, fmt='%.2f', inline_spacing = 20)
 
 plt.tick_params(axis='both', which='major')
@@ -155,43 +162,48 @@ for i in range(len(section['distance'])):
     ax.scatter(section['distance'][i], triangle_height, c="k", marker = "^", s = 50, zorder = 4)
     ax.text(section['distance'][i]+1, text_height, str(section['cast_nums'][i].values))
     
+    
 ### Plot nutrient sample values:
     
 colormap = plt.colormaps['YlGn']
 norm = mcolors.Normalize(vmin=0, vmax=nitrate_max)
 sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
 
-for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
+for j in range(len(sample_cast)-1, -1, -1): #plot shallow samples first
+
+    index = np.where(ctd_castnums==sample_cast[j])[0]
+    index = int(index[0])
+    # print(sample_cast[j], ctd_castnums[index])
+    
     size = nitrate_value[j]*10 + 10
     color = colormap(norm(nitrate_value[j]))
-    ax.scatter(ctd_distances[int(sample_cast[j])-1], sample_depth[j], color=color, edgecolor = 'k', s= size, zorder=4)
+    ax.scatter(ctd_distances[index], sample_depth[j], color=color, edgecolor = 'k', s= size, zorder=4)
 
     
 cbar_ax = fig.add_axes([0.95,0.1,0.02,0.78])
 cbar = fig.colorbar(sm, cax=cbar_ax)
 cbar.set_label('Nitrate [µmol N-NO3/L]', fontsize = 14)
+
     
 #################################
-
+    
 
 ax.plot(section_distances, bed, color = "gray")
 
-ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=0)
+ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=2)
 
 if whole_depth_sal == True: 
-    ax.text(12, -970, "Glacier")
-    ax.text(98, -970, "Shelf")
+    ax.text(2, -740, "South")
+    ax.text(90, -740, "North")
 
-    ax.set_ylim(-1000, 120)
+    ax.set_ylim(-780, 120)
     ax.set_xlim(0, 100)
     
 
 else: 
     ax.set_ylim(-175, 40)
-    ax.set_xlim(5, 92)
+    ax.set_xlim(7, 95)
 
-
-ax.invert_xaxis()
 ax.set_ylabel("Depth [m]")
 ax.set_xlabel("Distance Along Section [km]")
 
@@ -229,9 +241,9 @@ cbar.set_label("Conservative Temperature [°C]", labelpad=15)
 # Overlay sigma0 contours
 sigma_levels = [26, 26.5, 27, 27.5, 28]
 smoothed_sigma = savgol_filter(section["Potential Density Anomaly"], window_length=15, polyorder=1)
-cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='dimgray', linewidths=1)
+cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='darkslategrey', linewidths=0.7)
 
-label_positions = [(70, -400), (70, -100), (40, -70), (18, -30)]
+label_positions = [(48, -390), (50, -100), (50, -70), (65, -10)]
 ax.clabel(cs, inline=True, manual=label_positions, fmt='%.2f', inline_spacing = 20)
 
 plt.tick_params(axis='both', which='major')
@@ -248,10 +260,15 @@ colormap = plt.colormaps['YlGn']
 norm = mcolors.Normalize(vmin=0, vmax=nitrate_max)
 sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
 
-for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
+for j in range(len(sample_cast)-1, -1, -1): #plot shallow samples first
+
+    index = np.where(ctd_castnums==sample_cast[j])[0]
+    index = int(index[0])
+    # print(sample_cast[j], ctd_castnums[index])
+    
     size = nitrate_value[j]*10 + 10
     color = colormap(norm(nitrate_value[j]))
-    ax.scatter(ctd_distances[int(sample_cast[j])-1], sample_depth[j], color=color, edgecolor = 'k', s= size, zorder=4)
+    ax.scatter(ctd_distances[index], sample_depth[j], color=color, edgecolor = 'k', s= size, zorder=4)
 
     
 cbar_ax = fig.add_axes([0.95,0.1,0.02,0.78])
@@ -262,22 +279,21 @@ cbar.set_label('Nitrate [µmol N-NO3/L]', fontsize = 14)
     
 ax.plot(section_distances, bed, color = "gray")
 
-ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=0)
+ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=2)
 
 if whole_depth_temp == True: 
-    ax.text(12, -970, "Glacier")
-    ax.text(98, -970, "Shelf")
+    ax.text(2, -740, "South")
+    ax.text(90, -740, "North")
 
-    ax.set_ylim(-1000, 120)
+    ax.set_ylim(-780, 120)
     ax.set_xlim(0, 100)
 
 
 else: 
     ax.set_ylim(-175, 40)
-    ax.set_xlim(5, 92)
+    ax.set_xlim(7, 95)
 
 
-ax.invert_xaxis()
 ax.set_ylabel("Depth [m]")
 ax.set_xlabel("Distance Along Section [km]")
 
@@ -314,9 +330,9 @@ cbar.set_label(r"Chlorophyll Fluorescence [mg/m$^3$]", labelpad=15)
 # Overlay sigma0 contours
 sigma_levels = [26, 26.5, 27, 27.5, 28]
 smoothed_sigma = savgol_filter(section["Potential Density Anomaly"], window_length=15, polyorder=1)
-cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='white', linewidths=1)
+cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='white', linewidths=0.7)
 
-label_positions = [(70, -400), (70, -150), (40, -40), (70, -20)]
+label_positions = [(48, -390), (50, -100), (50, -70), (65, -10)]
 ax.clabel(cs, inline=True, manual=label_positions, fmt='%.2f', inline_spacing = 20)
 
 plt.tick_params(axis='both', which='major')
@@ -333,10 +349,15 @@ colormap = plt.colormaps['YlGn']
 norm = mcolors.Normalize(vmin=0, vmax=nitrate_max)
 sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
 
-for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
+for j in range(len(sample_cast)-1, -1, -1): #plot shallow samples first
+
+    index = np.where(ctd_castnums==sample_cast[j])[0]
+    index = int(index[0])
+    # print(sample_cast[j], ctd_castnums[index])
+    
     size = nitrate_value[j]*10 + 10
     color = colormap(norm(nitrate_value[j]))
-    ax.scatter(ctd_distances[int(sample_cast[j])-1], sample_depth[j], color=color, edgecolor = 'k', s=size, zorder=4)
+    ax.scatter(ctd_distances[index], sample_depth[j], color=color, edgecolor = 'k', s= size, zorder=4)
 
     
 cbar_ax = fig.add_axes([0.95,0.1,0.02,0.78])
@@ -347,22 +368,21 @@ cbar.set_label('Nitrate [µmol N-NO3/L]', fontsize = 14)
     
 ax.plot(section_distances, bed, color = "gray")
 
-ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=0)
+ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=2)
 
 if whole_depth_fluor == True: 
-    ax.text(12, -970, "Glacier")
-    ax.text(98, -970, "Shelf")
+    ax.text(2, -740, "South")
+    ax.text(90, -740, "North")
 
-    ax.set_ylim(-1000, 120)
+    ax.set_ylim(-780, 120)
     ax.set_xlim(0, 100)
 
 
 else: 
     ax.set_ylim(-175, 40)
-    ax.set_xlim(5, 92)
+    ax.set_xlim(7, 95)
 
 
-ax.invert_xaxis()
 ax.set_ylabel("Depth [m]")
 ax.set_xlabel("Distance Along Section [km]")
 
@@ -401,9 +421,9 @@ cbar.set_label(r"Turbidity [NTU]", labelpad=15)
 # Overlay sigma0 contours
 sigma_levels = [26, 26.5, 27, 27.5, 28]
 smoothed_sigma = savgol_filter(section["Potential Density Anomaly"], window_length=15, polyorder=1)
-cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='white', linewidths=1)
+cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='darkslategrey', linewidths=0.7)
 
-label_positions = [(70, -400), (70, -150), (40, -40), (70, -20)]
+label_positions = [(48, -390), (50, -100), (50, -70), (65, -10)]
 ax.clabel(cs, inline=True, manual=label_positions, fmt='%.2f', inline_spacing = 20)
 
 plt.tick_params(axis='both', which='major')
@@ -420,11 +440,15 @@ colormap = plt.colormaps['YlGn']
 norm = mcolors.Normalize(vmin=0, vmax=nitrate_max)
 sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
 
-for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
+for j in range(len(sample_cast)-1, -1, -1): #plot shallow samples first
+
+    index = np.where(ctd_castnums==sample_cast[j])[0]
+    index = int(index[0])
+    # print(sample_cast[j], ctd_castnums[index])
+    
     size = nitrate_value[j]*10 + 10
     color = colormap(norm(nitrate_value[j]))
-    ax.scatter(ctd_distances[int(sample_cast[j])-1], sample_depth[j], color=color, edgecolor = 'k', s=size, zorder=4)
-
+    ax.scatter(ctd_distances[index], sample_depth[j], color=color, edgecolor = 'k', s= size, zorder=4)
     
 cbar_ax = fig.add_axes([0.95,0.1,0.02,0.78])
 cbar = fig.colorbar(sm, cax=cbar_ax)
@@ -434,22 +458,21 @@ cbar.set_label('Nitrate [µmol N-NO3/L]', fontsize = 14)
     
 ax.plot(section_distances, bed, color = "gray")
 
-ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=0)
+ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=2)
 
 if whole_depth_turb == True: 
-    ax.text(12, -970, "Glacier")
-    ax.text(98, -970, "Shelf")
+    ax.text(2, -740, "South")
+    ax.text(90, -740, "North")
 
-    ax.set_ylim(-1000, 120)
+    ax.set_ylim(-780, 120)
     ax.set_xlim(0, 100)
 
 
 else: 
     ax.set_ylim(-175, 40)
-    ax.set_xlim(5, 92)
+    ax.set_xlim(7, 95)
 
 
-ax.invert_xaxis()
 ax.set_ylabel("Depth [m]")
 ax.set_xlabel("Distance Along Section [km]")
 
@@ -458,7 +481,7 @@ ax.set_xlabel("Distance Along Section [km]")
 # Plot oxygen section
 ########################################################################################
 
-
+oxy_min = 4.9
 oxy_max = 12
 
 whole_depth_ox = False  ## ENTER WHETHER WHOLE DEPTH OR TOP SEVERAL METERS
@@ -488,9 +511,9 @@ cbar.set_label(r"Oxygen [ml/l]", labelpad=15)
 # Overlay sigma0 contours
 sigma_levels = [26, 26.5, 27, 27.5, 28]
 smoothed_sigma = savgol_filter(section["Potential Density Anomaly"], window_length=15, polyorder=1)
-cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='white', linewidths=1)
+cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='darkslategrey', linewidths=0.7)
 
-label_positions = [(70, -400), (70, -150), (40, -40), (70, -20)]
+label_positions = [(48, -390), (50, -100), (50, -70), (65, -10)]
 ax.clabel(cs, inline=True, manual=label_positions, fmt='%.2f', inline_spacing = 20)
 
 plt.tick_params(axis='both', which='major')
@@ -507,10 +530,15 @@ colormap = plt.colormaps['YlGn']
 norm = mcolors.Normalize(vmin=0, vmax=nitrate_max)
 sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
 
-for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
+for j in range(len(sample_cast)-1, -1, -1): #plot shallow samples first
+
+    index = np.where(ctd_castnums==sample_cast[j])[0]
+    index = int(index[0])
+    # print(sample_cast[j], ctd_castnums[index])
+    
     size = nitrate_value[j]*10 + 10
     color = colormap(norm(nitrate_value[j]))
-    ax.scatter(ctd_distances[int(sample_cast[j])-1], sample_depth[j], color=color, edgecolor = 'k', s=size, zorder=4)
+    ax.scatter(ctd_distances[index], sample_depth[j], color=color, edgecolor = 'k', s= size, zorder=4)
 
     
 cbar_ax = fig.add_axes([0.95,0.1,0.02,0.78])
@@ -521,22 +549,21 @@ cbar.set_label('Nitrate [µmol N-NO3/L]', fontsize = 14)
     
 ax.plot(section_distances, bed, color = "gray")
 
-ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=0)
+ax.fill_between(section_distances, bed, min(bed) - 50, color="gray", zorder=2)
 
 if whole_depth_ox == True: 
-    ax.text(12, -970, "Glacier")
-    ax.text(98, -970, "Shelf")
+    ax.text(2, -740, "South")
+    ax.text(90, -740, "North")
 
-    ax.set_ylim(-1000, 120)
+    ax.set_ylim(-780, 120)
     ax.set_xlim(0, 100)
 
 
 else: 
     ax.set_ylim(-175, 40)
-    ax.set_xlim(5, 92)
+    ax.set_xlim(7, 95)
 
 
-ax.invert_xaxis()
 ax.set_ylabel("Depth [m]")
 ax.set_xlabel("Distance Along Section [km]")
 
