@@ -33,7 +33,7 @@ ctd_turb = ctd_ds["TURBIDITY"].values
 ctd_oxy = ctd_ds["OXYGEN"].values
 ctd_lats = ctd_ds["LAT"].values
 ctd_lons = ctd_ds["LON"].values
-ctd_castnums = ctd_ds["cast"].values +1
+ctd_castnums = ctd_ds["cast"].values
 
 
 sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
@@ -458,10 +458,10 @@ ax.set_xlabel("Distance Along Section [km]")
 # Plot oxygen section
 ########################################################################################
 
-
+oxy_min = 4.9
 oxy_max = 12
 
-whole_depth_ox = False  ## ENTER WHETHER WHOLE DEPTH OR TOP SEVERAL METERS
+whole_depth_ox = True  ## ENTER WHETHER WHOLE DEPTH OR TOP SEVERAL METERS
 
 if whole_depth_ox == True: 
     text_height = 60
@@ -488,7 +488,7 @@ cbar.set_label(r"Oxygen [ml/l]", labelpad=15)
 # Overlay sigma0 contours
 sigma_levels = [26, 26.5, 27, 27.5, 28]
 smoothed_sigma = savgol_filter(section["Potential Density Anomaly"], window_length=15, polyorder=1)
-cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='white', linewidths=1)
+cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='darkslategray', linewidths=1)
 
 label_positions = [(70, -400), (70, -150), (40, -40), (70, -20)]
 ax.clabel(cs, inline=True, manual=label_positions, fmt='%.2f', inline_spacing = 20)

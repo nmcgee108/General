@@ -80,29 +80,35 @@ def pad_old_netcdf(old_filename, new_filename):
     
     
     ds = xr.Dataset(
-        data_vars={
-            "SAL_ABSOLUTE": (["cast", "depth"], SA_aligned),
-            "SAL_PRACTICAL": (["cast", "depth"], SP_aligned),
-            "CONSERVATIVE_TEMP": (["cast", "depth"], CT_aligned),
-            "POTENTIAL_TEMP": (["cast", "depth"], THETA_aligned),
-            "PRESSURE": (["cast", "depth"], PRES_aligned),
-            "CONDUCTIVITY": (["cast", "depth"], COND_aligned),
-            "OXYGEN": (["cast", "depth"], OX_aligned),
-            "TURBIDITY": (["cast", "depth"], TURB_aligned),
-            "FLUORESCENCE": (["cast", "depth"], FLUOR_aligned)
-        },
-        coords={
-            "profile": np.arange(n_casts),
-            "depth": np.arange(max_len),
-        },
-        attrs={}
-    )
+    data_vars={
+        "SAL_ABSOLUTE":       (["cast", "depth"], SA_aligned,    {"units": "g/kg",          "long_name": "Absolute Salinity"}),
+        "SAL_PRACTICAL":      (["cast", "depth"], SP_aligned,    {"units": "PSU",            "long_name": "Practical Salinity"}),
+        "CONSERVATIVE_TEMP":  (["cast", "depth"], CT_aligned,    {"units": "degrees_C",      "long_name": "Conservative Temperature"}),
+        "POTENTIAL_TEMP":     (["cast", "depth"], THETA_aligned,  {"units": "degrees_C",      "long_name": "Potential Temperature"}),
+        "PRESSURE":           (["cast", "depth"], PRES_aligned,  {"units": "dbar",           "long_name": "Pressure"}),
+        "CONDUCTIVITY":       (["cast", "depth"], COND_aligned,  {"units": "mS/cm",            "long_name": "Conductivity"}),
+        "OXYGEN":             (["cast", "depth"], OX_aligned,    {"units": "ml/l",           "long_name": "Dissolved Oxygen"}),
+        "TURBIDITY":          (["cast", "depth"], TURB_aligned,  {"units": "NTU",            "long_name": "Turbidity"}),
+        "FLUORESCENCE":       (["cast", "depth"], FLUOR_aligned, {"units": "mg/m^3",         "long_name": "Fluorescence"}),
+    },
+    coords={
+        "cast": np.arange(1, n_casts+1),
+        "depth":   np.arange(max_len),
+    },
+    attrs={"description": "CTD profiles", "source": new_filename}  # optional global attrs
+)
         
     ds["LAT"] = ("cast", ncfile.variables["Latitude"][:])
     ds["LON"] = ("cast", -ncfile.variables["Longitude"][:])
     ds["DATE"] = ("cast", ncfile.variables["Date"][:])
     ds["CAST_NUM"] = ("cast", ncfile.variables["Cast_Number"][:])
     ds["FLAG"] = ("cast", ncfile.variables["Flag"][:])
+    
+    ds["LAT"].attrs       = {"units": "degrees_north", "long_name": "Latitude"}
+    ds["LON"].attrs       = {"units": "degrees_east",  "long_name": "Longitude"}
+    ds["DATE"].attrs      = {"long_name": "Date"}
+    ds["CAST_NUM"].attrs  = {"long_name": "Cast Number"}
+    ds["FLAG"].attrs      = {"long_name": "Processing Flag"}
     
     ncfile.close()
     

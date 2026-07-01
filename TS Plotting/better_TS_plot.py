@@ -28,7 +28,7 @@ ctd_sal = ctd_ds["SAL_ABSOLUTE"][cast_range[0]-1:cast_range[1]].values
 ctd_temp = ctd_ds["CONSERVATIVE_TEMP"][cast_range[0]-1:cast_range[1]].values
 ctd_lats = ctd_ds["LAT"][cast_range[0]-1:cast_range[1]].values
 ctd_lons = ctd_ds["LON"][cast_range[0]-1:cast_range[1]].values
-ctd_castnums = ctd_ds["cast"][cast_range[0]-1:cast_range[1]].values +1
+ctd_castnums = ctd_ds["cast"][cast_range[0]-1:cast_range[1]].values
 
 sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
 

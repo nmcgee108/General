@@ -7,7 +7,7 @@ Created on Tue Jun 16 11:29:19 2026
 """
 from netCDF4 import Dataset
 
-ncfile = Dataset("/Users/nataliemcgee/Documents/GitHub/ctd_processing_pipeline/code/python/rbr_to_netcdf_example", 'r')
+ncfile = Dataset("/Users/nataliemcgee/Documents/Upernavik Data/Nutrients/nitrate_profiles.nc", 'r')
 
 # View all info
 print(ncfile)
@@ -16,5 +16,6 @@ print(ncfile)
 print(ncfile.variables.keys())
 
 # View metadata of one variable
-#print(ncfile.variables["salinity"])
+print(ncfile.variables["Nitrate"])
 
+print(ncfile["Nitrate"][3][40:50])

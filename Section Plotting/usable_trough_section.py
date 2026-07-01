@@ -33,7 +33,7 @@ ctd_turb = ctd_ds["TURBIDITY"].values
 ctd_oxy = ctd_ds["OXYGEN"].values
 ctd_lats = ctd_ds["LAT"].values
 ctd_lons = ctd_ds["LON"].values
-ctd_castnums = ctd_ds["cast"].values +1
+ctd_castnums = ctd_ds["cast"].values
 
 
 sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
