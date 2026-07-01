@@ -89,7 +89,7 @@ sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
 temps = []
 sals = []
 
-for i in range(20):
+for i in range(8, 19):
     
     dist = find_distance(lat[i], lon[i])
     color = colormap(norm(dist))
@@ -107,7 +107,7 @@ for i in range(20):
     axes[0,0].axhspan(-250, -130, color = "pink", alpha = 0.06)
     axes[0,1].grid(True)
     axes[0,1].set_xlim(28,35)
-    axes[0,1].set_ylim(-100, 0)
+    #axes[0,1].set_ylim(-900, 0)
     
     
 
@@ -134,17 +134,17 @@ for i in range(20):
     
     axes[1,0].set_ylabel("Depth [m]", fontsize = 14)
 
-    #axes[1,1].plot(oxy[i], -depth_bin[i], c=color)
-    axes[1,1].plot(density, -depth_bin[i], c=color)
+    axes[1,1].plot(oxy[i], -depth_bin[i], c=color)
+    #axes[1,1].plot(density, -depth_bin[i], c=color)
     axes[1,1].vlines(26.98, -800, 0)
     axes[1,1].vlines(27.43, -800, 0)
     axes[1,1].axhspan(-425, -150, color = "lightskyblue", alpha = 0.06)
     axes[1,1].axhspan(-250, -130, color = "pink", alpha = 0.06)
     axes[1,1].vlines(26.95, -800, 0, color = "red")
     axes[1,1].vlines(27.2, -800, 0, color = "red")
-    axes[1,1].set_xlabel("Density", fontsize = 14)
-    axes[1,1].set_xlim(26.5,27.6)
-    #axes[1,1].set_xlabel("Oxygen [ml/l]")
+    #axes[1,1].set_xlabel("Density", fontsize = 14)
+    axes[1,1].set_xlim(6, 10)
+    axes[1,1].set_xlabel("Oxygen [ml/l]")
     axes[1,1].grid(True)
 
     
