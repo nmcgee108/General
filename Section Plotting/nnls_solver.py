@@ -29,13 +29,14 @@ ctd_pres = ctd_ds["PRESSURE"].values
 ctd_temp = ctd_ds["CONSERVATIVE_TEMP"].values
 ctd_fluor = ctd_ds["FLUORESCENCE"].values
 ctd_turb = ctd_ds["TURBIDITY"].values
-ctd_oxy = ctd_ds["OXYGEN"].values * 43.570 # rough convert to umol/kg
+ctd_oxy = ctd_ds["OXYGEN"].values #* 43.570 # rough convert to umol/kg
 ctd_lats = ctd_ds["LAT"].values
 ctd_lons = ctd_ds["LON"].values
 ctd_castnums = ctd_ds["cast"].values
 
-# rho = gsw.rho(ctd_sal, ctd_temp, ctd_pres)
+
 sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
+converted_oxy = ctd_oxy*44.660/((1000+sigma0)/1000)
 
 
 # Enter endmember values
@@ -71,7 +72,7 @@ SGD_fracs = []
 residuals = []
 
 
-cast_num = 7
+cast_num = 3
 
 for i in range(len(ctd_sal[cast_num-1])):
 
@@ -79,7 +80,7 @@ for i in range(len(ctd_sal[cast_num-1])):
     # Observed values
     T_obs = ctd_temp[cast_num-1][i]
     S_obs = ctd_sal[cast_num-1][i]
-    O_obs = ctd_oxy[cast_num-1][i] 
+    O_obs = converted_oxy[cast_num-1][i] 
     
     d = [T_obs, S_obs, O_obs, 1]
     

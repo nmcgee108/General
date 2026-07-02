@@ -34,9 +34,25 @@ ctd_oxy = ctd_ds["OXYGEN"].values
 ctd_lats = ctd_ds["LAT"].values
 ctd_lons = ctd_ds["LON"].values
 ctd_castnums = ctd_ds["cast"].values
-
+ctd_pres = ctd_ds["PRESSURE"].values
 
 sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
+
+converted_oxy = ctd_oxy*44.660/((1000+sigma0)/1000)
+
+O2sol = gsw.O2sol(
+    ctd_sal,
+    ctd_temp,
+    ctd_pres,
+    ctd_lons[:, np.newaxis],   # (56,) → (56, 1)
+    ctd_lats[:, np.newaxis]    # (56,) → (56, 1)
+)
+
+oxy_percent = (converted_oxy / O2sol) * 100
+
+# print("CTD oxy units/range:", np.nanmin(converted_oxy), np.nanmax(converted_oxy))
+# print("O2sol range:", np.nanmin(O2sol), np.nanmax(O2sol))
+# print("% sat range:", np.nanmin(oxy_percent), np.nanmax(oxy_percent))
 
 
 # Extract bathymetry section columns for plotting
@@ -106,7 +122,7 @@ section = xr.Dataset(
         "Conservative Temperature": (["distance", "depth"], ctd_temp[start_cast-1:end_cast]),
         "Fluorescence": (["distance", "depth"], ctd_fluor[start_cast-1:end_cast]),
         "Turbidity": (["distance", "depth"], ctd_turb[start_cast-1:end_cast]),
-        "Oxygen": (["distance", "depth"], ctd_oxy[start_cast-1:end_cast]),
+        "Oxygen": (["distance", "depth"], oxy_percent[start_cast-1:end_cast]),
         "Potential Density Anomaly": (["distance", "depth"], sigma0[start_cast-1:end_cast]),
         "cast_nums": (["distance"], ctd_castnums[start_cast-1:end_cast]),
         "max_depth": (["distance"], ctd_maxdepths[start_cast-1:end_cast])},
@@ -481,8 +497,11 @@ ax.set_xlabel("Distance Along Section [km]")
 # Plot oxygen section
 ########################################################################################
 
-oxy_min = 4.9
-oxy_max = 12
+# oxy_min = 4.9
+# oxy_max = 12
+
+oxy_min = 60
+oxy_max = 134
 
 whole_depth_ox = False  ## ENTER WHETHER WHOLE DEPTH OR TOP SEVERAL METERS
 
@@ -495,7 +514,6 @@ else:
     text_height = 20
     triangle_height = 15
     nitrate_max = 12.5
-    oxy_min = 5.5
 
         
 # Build meshgrid
@@ -504,9 +522,9 @@ X, Y = np.meshgrid(section["distance"], -section["depth"])
 levels = np.linspace(oxy_min, oxy_max, 300)
 
 fig, ax = plt.subplots(figsize=(12, 6))
-cf = ax.contourf(X, Y, section["Oxygen"].T, levels=levels, norm=PowerNorm(gamma=0.6), cmap='PuOr_r')
+cf = ax.contourf(X, Y, section["Oxygen"].T, levels=levels, norm=PowerNorm(gamma=1), cmap='PuOr_r')
 cbar = plt.colorbar(cf, ax=ax, format="%.2f")
-cbar.set_label(r"Oxygen [ml/l]", labelpad=15)
+cbar.set_label(r"Oxygen Saturation [%]", labelpad=15)
 
 # Overlay sigma0 contours
 sigma_levels = [26, 26.5, 27, 27.5, 28]

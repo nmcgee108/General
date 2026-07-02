@@ -55,10 +55,6 @@ def find_distance(lat2, lon2):
     # lat and lon of station 4:
     lat1 = lat[3]
     lon1 = lon[3]
-    
-    # lat and lon of a different station:
-  #  lat1 = lat[9]
-   # lon1 = lon[9]
         
     R = 6371.0  # Earth's radius in km
 

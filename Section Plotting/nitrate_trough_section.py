@@ -114,7 +114,6 @@ sigma0_padded = np.pad(sigma0, ((0, 0), (0, target_len - sigma0.shape[1])), cons
 # Create the section
 idx = np.arange(start_cast-1, end_cast)
 
-
 section = xr.Dataset(
     data_vars={
         "Absolute Salinity": (["distance", "depth"], sal_padded[idx]),
