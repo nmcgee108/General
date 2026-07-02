@@ -25,6 +25,7 @@ ctd_ds = xr.open_dataset(ctd_netcdf)
 
 ctd_depth = ctd_ds["depth"].values
 ctd_sal = ctd_ds["SAL_ABSOLUTE"].values
+ctd_pres = ctd_ds["PRESSURE"].values
 ctd_temp = ctd_ds["CONSERVATIVE_TEMP"].values
 ctd_fluor = ctd_ds["FLUORESCENCE"].values
 ctd_turb = ctd_ds["TURBIDITY"].values
@@ -33,7 +34,9 @@ ctd_lats = ctd_ds["LAT"].values
 ctd_lons = ctd_ds["LON"].values
 ctd_castnums = ctd_ds["cast"].values
 
+# rho = gsw.rho(ctd_sal, ctd_temp, ctd_pres)
 sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
+
 
 # Enter endmember values
 
@@ -53,7 +56,7 @@ O_SMW = 1050 # From Margaret's paper!
 
 T_SGD = 0 
 S_SGD = 0 
-O_SGD = 457
+O_SGD = 457 # From Margaret's paper!
 
 
 A = [[T_AW, T_PW, T_SMW, T_SGD],
@@ -65,8 +68,10 @@ AW_fracs = []
 PW_fracs = []
 SMW_fracs = []
 SGD_fracs = []
+residuals = []
 
-cast_num = 3
+
+cast_num = 7
 
 for i in range(len(ctd_sal[cast_num-1])):
 
@@ -83,6 +88,7 @@ for i in range(len(ctd_sal[cast_num-1])):
         PW_fracs.append(np.nan)
         SMW_fracs.append(np.nan)
         SGD_fracs.append(np.nan)
+        residuals.append(np.nan)
         continue
 
     # Solve the NNLS problem
@@ -92,19 +98,31 @@ for i in range(len(ctd_sal[cast_num-1])):
     PW_fracs.append(x[1])
     SMW_fracs.append(x[2])
     SGD_fracs.append(x[3])
+    residuals.append(residual)
     
     
-fig, axes = plt.subplots(2, 2, figsize=(7, 14), sharey=True) 
+fig, axes = plt.subplots(1, 5, figsize=(14, 6), sharey=True) 
     
-axes[0, 0].plot(AW_fracs, -ctd_depth)
-axes[0, 1].plot(PW_fracs, -ctd_depth)
-axes[1, 0].plot(SMW_fracs, -ctd_depth)
-axes[1, 1].plot(SGD_fracs, -ctd_depth)
+axes[0].plot(AW_fracs, -ctd_depth, color = "C3")
+axes[1].plot(PW_fracs, -ctd_depth, color = "skyblue")
+axes[2].plot(SMW_fracs, -ctd_depth, color = "mediumpurple")
+axes[3].plot(SGD_fracs, -ctd_depth, color = "darkgreen")
+axes[4].plot(residuals, -ctd_depth, color = "k")
 
-axes[0, 0].set_xlabel("AW Fraction")
-axes[0, 1].set_xlabel("PW Fraction")
-axes[1, 0].set_xlabel("SMW Fraction")
-axes[1, 1].set_xlabel("SGD Fraction")
+axes[0].set_xlabel("AW Fraction")
+axes[1].set_xlabel("PW Fraction")
+axes[2].set_xlabel("SMW Fraction")
+axes[3].set_xlabel("SGD Fraction")
+axes[4].set_xlabel("Residual")
+
+axes[3].set_xlim(-0.01, 0.05)
+
+fig.suptitle(f"Cast {cast_num}")
+
+
+plt.show()
+plt.tight_layout()
+
 
 
 
