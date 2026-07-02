@@ -17,7 +17,7 @@ from matplotlib import colors
 
 plt.rcParams['font.size'] = 14
 
-uc_patch_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
+uc_patch_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
 
 ncfile = Dataset(uc_patch_file, 'r')
 
@@ -354,8 +354,8 @@ for i in range(8):
     
 axes[1].plot(SA[8], CT[8], c='k', label="Cast 9 (shelf)", zorder=5)
 
-axes[1].set_xlim(33.5, 34.9)
-axes[1].set_ylim(-0.5, 4)
+axes[1].set_xlim(31, 35)
+axes[1].set_ylim(-0.5, 3)
 axes[1].scatter(34.237632875, 1.8995849875, marker = "*", s=70, color = "red", zorder = 6, label = "Turbidity Peaks")
 axes[1].scatter(34.4352518, 2.0476521400000003, marker = "*", s=70, zorder = 6, color = "red")
 
