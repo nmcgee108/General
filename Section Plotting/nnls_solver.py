@@ -72,7 +72,7 @@ SGD_fracs = []
 residuals = []
 
 
-cast_num = 3
+cast_num = 7
 
 for i in range(len(ctd_sal[cast_num-1])):
 

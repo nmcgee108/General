@@ -1,123 +1,159 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jun 26 11:31:12 2026
-
-@author: nataliemcgee
-"""
 
 import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import gsw
 from full_plume import run_plume
 import warnings
 
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 
-# Load the CTD NetCDF dataset
-ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
-nutrients_file = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Nutrients/NutrientsUS2024_plotting.csv", encoding="latin-1")
+ctd_netcdf       = "/Users/nataliemcgee/Documents/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
+nutrients_file   = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Nutrients/NutrientsUS2024_plotting.csv", encoding="latin-1")
+nutrient_profiles = "/Users/nataliemcgee/Documents/Upernavik Data/Nutrients/nitrate_profiles.nc"
 
-ctd_ds = xr.open_dataset(ctd_netcdf)
+nitrate_ds = xr.open_dataset(nutrient_profiles)
+ctd_ds     = xr.open_dataset(ctd_netcdf)
 
-#-----------------------------
-# THINGS TO ENTER
-#-----------------------------
-cast_num = 3
-plume_depth = 650
-Q_discharge = 55 # subglacial discharge (m3/s)
-width = 300 # (m)
 
-#-----------------------------
+def run_model(cast_num, plume_depth):
 
+    Q_discharge = 55   # subglacial discharge (m3/s)
+    width       = 300  # (m)
+
+    ctd_depth = ctd_ds["depth"].values
+    ctd_sal   = ctd_ds["SAL_ABSOLUTE"][cast_num - 1].values
+    ctd_temp  = ctd_ds["CONSERVATIVE_TEMP"][cast_num - 1].values
+
+    depth   = nitrate_ds["depth"].values
+    nitrate = nitrate_ds["Nitrate"][cast_num - 1].values
+
+    # Pad CTD arrays to match nitrate depth length
+    target_len   = nitrate.shape[0]
+    sal_padded   = np.pad(ctd_sal,  (0, target_len - ctd_sal.shape[0]),  constant_values=np.nan)
+    temp_padded  = np.pad(ctd_temp, (0, target_len - ctd_temp.shape[0]), constant_values=np.nan)
+
+    valid = np.where(~np.isnan(ctd_sal))[0]
+    ctd_maxdepth = float(ctd_depth[valid[-1]]) if len(valid) > 0 else 0.0
+
+    # Build mask from `depth` (nitrate grid) so all arrays index consistently
+    Q0         = Q_discharge / width
+    depth_mask = np.where(depth < plume_depth)
+
+    zi = -depth[depth_mask][::-1]   # deepest to shallowest, negative convention
+    xi = np.zeros_like(zi)
+    Ta = temp_padded[depth_mask][::-1]
+    Sa = sal_padded[depth_mask][::-1]
+    Na = nitrate[depth_mask][::-1]
+    alpha = 0.1
+
+    if ctd_maxdepth < plume_depth:
+        print("****Warning: Chosen plume depth exceeds CTD data! T, S extrapolated at depth*****")
+        zi = np.insert(zi, 0, -plume_depth)
+        xi = np.insert(xi, 0, 0)
+        Ta = np.insert(Ta, 0, np.nanmean(Ta[:10]))
+        Sa = np.insert(Sa, 0, np.nanmean(Sa[:10]))
+        Na = np.insert(Na, 0, np.nanmean(Na[:10]))
+
+    sol = run_plume(zi, xi, Ta, Sa, Na, Q0, alpha)
+
+    NBD             = sol["zNB"]
+    nitrate_NBD     = sol["NNB"]
+    temp_NBD        = sol["TNB"]
+    sal_NBD        = sol["SNB"]
+    amb_nitrate_NBD = nitrate[-int(sol["zNB"])]
+    nitrate_anomaly = nitrate_NBD - amb_nitrate_NBD
+    volume_flux     = sol["QNB"] * width
+    NFA             = (nitrate_NBD - amb_nitrate_NBD) * volume_flux / 1e3
+
+    # print(f"NBD = {NBD:.2f} [meters]")
+    # print(f"Volume Flux = {volume_flux:.2f} [m3/s]")
+    print(f"Nitrate @ NBD = {nitrate_NBD:.2f} [uM]")
+    # print(f"Ambient Nitrate @ NBD = {amb_nitrate_NBD:.2f} [uM]")
+    print(f"Nitrate Anomaly @ NBD = {nitrate_anomaly:.2f} [uM]")
+    # print(f"***** NFA = {NFA:.2f} [mol/s] *****")
+
+    return nitrate_NBD, temp_NBD, sal_NBD, NBD
+
+
+# ── Section plot ──────────────────────────────────────────────────────────────
+fig, axes = plt.subplots(1, 2, figsize=(14, 8), sharey=True)
+axes[0].set_ylabel("Depth [m]")
+axes[0].set_xlabel(r"Nitrate [$\mu$M]")
+axes[1].set_xlabel(r"CT [°C]")
+
+depth     = nitrate_ds["depth"].values
+nitrate   = nitrate_ds["Nitrate"].values
+castnums  = nitrate_ds["cast"].values
+sal       = ctd_ds["SAL_ABSOLUTE"].values
+temp      = ctd_ds["CONSERVATIVE_TEMP"].values
 ctd_depth = ctd_ds["depth"].values
-ctd_sal = ctd_ds["SAL_ABSOLUTE"][cast_num-1].values
-ctd_temp = ctd_ds["CONSERVATIVE_TEMP"][cast_num-1].values
-ctd_fluor = ctd_ds["FLUORESCENCE"][cast_num-1].values
-ctd_turb = ctd_ds["TURBIDITY"][cast_num-1].values
-ctd_oxy = ctd_ds["OXYGEN"][cast_num-1].values
-ctd_lats = ctd_ds["LAT"][cast_num-1].values
-ctd_lons = ctd_ds["LON"][cast_num-1].values
-ctd_castnums = ctd_ds["cast"][cast_num-1].values +1
-sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
 
-valid = np.where(~np.isnan(ctd_sal))[0]
+for i in [1, 2, 13]:
+    if castnums[i] in [1, 4, 5, 10, 11, 12]:
+        continue
 
-if len(valid) > 0:
-    ctd_maxdepth = float(ctd_depth[valid[-1]])
+    zorder    = 1
+    linewidth = 2
+    label     = None
 
-# Extract nutrient data
-# Using cast 8: csv lines 25-33
+    if castnums[i] < 9:
+        color  = "indigo"
+        zorder = 2
+        if castnums[i] == 3:
+            label = "C. 2 and 3"
 
-#cast_range = (25, 33)  # Cast 8 (downstream fjord)
-#cast_range = (63, 71)   # Cast 14 (trough)
-cast_range = (7, 13)    # Cast 3 (upstream fjord)
+    if castnums[i] == 9:
+        color     = "k"
+        zorder    = 3
+        linewidth = 3
+        label     = "C. 9"
 
-nitrate_value = pd.to_numeric(nutrients_file['NO3'][cast_range[0]:cast_range[1]])
-sample_cast = nutrients_file['St#'][cast_range[0]:cast_range[1]]
-sample_depth = pd.to_numeric(nutrients_file['Depth  '][cast_range[0]:cast_range[1]])
+    if castnums[i] > 9:
+        color     = "gray"
+        linewidth = 1
+        if castnums[i] == 14:
+            label = "Trough"
 
-sample_depth_reversed = sample_depth.iloc[::-1]
-nitrate_value_reversed = nitrate_value.iloc[::-1]
+    if castnums[i] == 14:
+        color     = "red"
+        linewidth = 2
+        zorder    = 3
+        label     = "C. 14"
 
-# Create a linearly interpolated nitrate profile based of cast 8 nitrate data
-nitrate_profile = np.interp(ctd_depth, sample_depth_reversed, nitrate_value_reversed)
+    axes[0].plot(nitrate[i], -depth, color=color, zorder=zorder,
+              linewidth=linewidth, label=label)
+    
+    axes[1].plot(temp[i], -ctd_depth, color=color, zorder=zorder,
+              linewidth=linewidth, label=label)
     
 
-#-----------------------------
-# Full plume model
-#-----------------------------
-Q0 = Q_discharge/width # (m2/s)
-depth_mask = np.where(ctd_depth<plume_depth)
-zi = -ctd_depth[depth_mask][::-1] # Must input values from deepest to shallowest!
-xi = np.zeros_like(zi)
-Ta = ctd_temp[depth_mask][::-1]   # ambient fjord temperature at zi
-Sa = ctd_sal[depth_mask][::-1] # ambient fjord salinity at zi
-Na = nitrate_profile[depth_mask][::-1] # ambient fjord nitrate at zi
-alpha = 0.1 # entrainment coefficient
-
-if ctd_maxdepth<plume_depth:
-    print("****Warning: Chosen plume depth exceeds CTD data! T, S extrapolated at depth*****")
-    zi = np.insert(zi, 0, -plume_depth)
-    xi = np.insert(xi, 0, 0)
-    Ta = np.insert(Ta, 0, np.average(Ta[:10]))
-    Sa = np.insert(Sa, 0, np.average(Sa[:10]))
-    Na = np.insert(Na, 0, np.average(Na[:10]))
-
-sol=run_plume(zi, xi, Ta, Sa, Na, Q0, alpha)
-
-NBD = sol["zNB"]
-nitrate_NBD = sol["NNB"]
-amb_nitrate_NBD = nitrate_profile[-int(sol["zNB"])]
-nitrate_anomaly = nitrate_NBD-amb_nitrate_NBD
-volume_flux = sol["QNB"]*width
-
-# Units note: Multiply nitrate x 1000 to convert from liters to m^3, then
-# divide by 10^6 to convert from micromoles to moles. 
-NFA = (nitrate_NBD - amb_nitrate_NBD)*volume_flux / 1e3
-
-print(f"NBD = {NBD:.2f} [meters]")
-print(f"Volume Flux = {volume_flux:.2f} [m3/s]")
-print(f"Nitrate @ NBD = {nitrate_NBD:.2f} [uM]")
-print(f"Ambient Nitrate @ NBD = {amb_nitrate_NBD:.2f} [uM]")
-print(f"Nitrate Anomaly @ NBD = {nitrate_anomaly:.2f} [uM]")
-print(f"***** NFA = {NFA:.2f} [mol/s] *****")
+# Plume model results — scatter at (nitrate @ NBD, NBD depth)
 
 
+for cast, pdepth, marker, color, label in [(3, 175, "o", "indigo", "Using cast 3"), 
+                                    (14, 175, "o", "red", "Using cast 14"),
+                                    (3, 650, "s", "indigo", ""), 
+                                    (14, 650, "s", "red", "")]:
+    
+    nitrate_NBD, temp_NBD, sal_NBD, NBD = run_model(cast, pdepth)
+    
+    axes[0].scatter(nitrate_NBD, NBD, marker=marker, zorder=5,
+                 color = color, label = label, edgecolor="k", s=75)
+    
+    axes[1].scatter(temp_NBD, NBD, marker=marker, zorder=5,
+                 color = color, label = label, edgecolor="k", s=75)
+    
+    
+    
+axes[0].set_xlim(7, 20)
+axes[1].set_xlim(-1.5, 4)
+axes[1].set_ylim(-600, 50)
 
-fig, axes = plt.subplots(1,2, figsize = (10, 8))
-axes[0].plot(nitrate_profile, -ctd_depth)
-axes[0].set_ylim(-plume_depth, 0)
-axes[0].set_xlabel(r"Shelf NO$_3$")
-
-axes[1].plot(sol["N"], sol["z"])
-axes[1].set_ylim(-plume_depth, 0)
-axes[1].set_xlabel(r"Plume NO$_3$")
-
-
-
+axes[0].legend(loc="lower left")
+plt.tight_layout()
+plt.show()
 
 
 
