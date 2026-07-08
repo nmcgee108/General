@@ -12,14 +12,13 @@ import xarray as xr
 import numpy as np
 from datetime import datetime, timedelta
 
-mat = loadmat("/Users/nataliemcgee/Downloads/MB2024_seabird_CTD.mat")
+mat = loadmat("//Users/nataliemcgee/Documents/Upernavik Data/Morven CTD Data 2013-2019/upernavik2015.mat")
 print(mat.keys())
 
 for k in mat.keys():
     if not k.startswith('__'):
         print(k, mat[k].shape, mat[k].dtype)
-
-#cast = np.arange(mat["cast_number"].shape[1])
+        
 
 # deal with matlab times
 # def matlab_datenum_to_datetime(dn):
@@ -30,27 +29,34 @@ for k in mat.keys():
 # times = [matlab_datenum_to_datetime(t)
 #          for t in mat["Xtime"].squeeze()]
 
-depth = mat["depth"][0, :].astype(np.float64) # take cast 0's depth vector, assuming all casts share it,
+
+# Helper to extract a field from the nested MATLAB struct
+def get_field(mat, field):
+    return mat['new2015'][field][0][0].squeeze().astype(float)
+
+lon   = get_field(mat, 'lon')
+lat   = get_field(mat, 'lat')
+CT    = get_field(mat, 'CT')
+SA    = get_field(mat, 'SA')
+depth = get_field(mat, 'depth')
+
+print(lon.shape, lat.shape, CT.shape, SA.shape, depth.shape)
+
 
 ds = xr.Dataset(
     data_vars={
-        "Nitrate": (["cast", "depth"], mat["nitrate"]),
-        # "Temperature": (["depth", "cast"], mat["TX"]),
-        # "Potential_Temperature": (["depth", "cast"], mat["PTX"]),
-        # "Potential_Density": (["depth", "cast"], mat["PDX"]),
-        # "Conductivity": (["depth", "cast"], mat["CX"]),
+        "Conservative_Temperature": (["cast", "depth"], CT),
+        "Absolute_Salinity":        (["cast", "depth"], SA),
     },
     coords={
-        "depth": depth,   
-        "cast": mat["cast_number"].squeeze(),
-        "latitude": ("cast", mat["lat"].squeeze()),
-        "longitude": ("cast", mat["lon"].squeeze()),
-        #"time": ("cast", times)
+        "depth":     depth[0, :],   # just the first cast's depth vector
+        "latitude":  ("cast", lat),
+        "longitude": ("cast", lon),
     }
 )
 
-ds.to_netcdf("nitrate_profiles.nc")
 
+ds.to_netcdf("2015_profiles.nc")
 print("File Saved")
 
 

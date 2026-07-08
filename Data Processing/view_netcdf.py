@@ -7,7 +7,7 @@ Created on Tue Jun 16 11:29:19 2026
 """
 from netCDF4 import Dataset
 
-ncfile = Dataset("/Users/nataliemcgee/Documents/Upernavik Data/Nutrients/nitrate_profiles.nc", 'r')
+ncfile = Dataset("/Users/nataliemcgee/Documents/Upernavik Data/Morven CTD Data 2013-2019/2015_profiles.nc", 'r')
 
 # View all info
 print(ncfile)
@@ -16,6 +16,6 @@ print(ncfile)
 print(ncfile.variables.keys())
 
 # View metadata of one variable
-print(ncfile.variables["Nitrate"])
+print(ncfile.variables["Conservative_Temperature"])
 
 print(ncfile["Nitrate"][3][40:50])
