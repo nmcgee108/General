@@ -21,7 +21,7 @@ nutrients_file = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Nutri
 
 ctd_ds = xr.open_dataset(ctd_netcdf)
 
-cast_range = (2, 4)  # Enter casts of interest
+cast_range = (2, 8)  # Enter casts of interest
 
 ctd_depth = ctd_ds["depth"].values
 ctd_sal = ctd_ds["SAL_ABSOLUTE"][cast_range[0]-1:cast_range[1]].values
@@ -71,7 +71,7 @@ dist_norm = mcolors.Normalize(vmin=min_dist, vmax=max_dist)  # Normalize the col
 dist_sm = plt.cm.ScalarMappable(cmap=dist_colormap, norm=dist_norm)   # Creates coloring capabilities based on numerical values
 
 # Make plot
-fig, axes = plt.subplots(1, 1, figsize=(14, 8))
+fig, axes = plt.subplots(1, 1, figsize=(12, 10))
 
 # Create grid of salinity and temperature
 minS = 30
@@ -137,8 +137,8 @@ for i in range(len(ctd_distances)):
 
 axes.set_xlabel("Absolute Salinity [g/kg]")
 axes.set_ylabel("Conservative Temperature [°C]")
-axes.set_xlim(31.0, 35)
-axes.set_ylim(-0.5, 3)
+axes.set_xlim(33, 35)
+axes.set_ylim(-2, 4)
 
 
 #axes.legend(loc = "lower right")
@@ -160,7 +160,7 @@ for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
         temp = ctd_temp[index][-sample_depth[j]]
 
         color = dist_colormap(dist_norm(ctd_distances[index]))
-        axes.scatter(sal, temp, color=color, marker = "o", edgecolor = 'k', s=nitrate_value[j]*15+15, zorder=4)
+        #axes.scatter(sal, temp, color=color, marker = "o", edgecolor = 'k', s=nitrate_value[j]*15+15, zorder=4)
         
         if sample_depth[j]==-100:
             print(ctd_castnums[index], nitrate_value[j])
@@ -169,7 +169,7 @@ for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
 c9_sal = ctd_ds["SAL_ABSOLUTE"][8].values
 c9_temp = ctd_ds["CONSERVATIVE_TEMP"][8].values
     
-plt.plot(c9_sal, c9_temp, color = 'k')
+plt.scatter(c9_sal, c9_temp, color = 'red', s=5)
 
 
 

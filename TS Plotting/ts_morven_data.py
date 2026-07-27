@@ -56,7 +56,7 @@ def find_distance(lat1, lon1, lat2, lon2):
     return distance
 
 # Calculate the distance of each cast from the innermost station
-lon_ref, lat_ref = ctd_lons[5],ctd_lats[5] # Innermost station is ?
+lon_ref, lat_ref = ctd_lons[12],ctd_lats[12] # Innermost station is ?
     
 ctd_distances = []
 
@@ -72,7 +72,7 @@ dist_norm = mcolors.Normalize(vmin=min_dist, vmax=max_dist)  # Normalize the col
 dist_sm = plt.cm.ScalarMappable(cmap=dist_colormap, norm=dist_norm)   # Creates coloring capabilities based on numerical values
 
 # Make plot
-fig, axes = plt.subplots(1, 1, figsize=(14, 8))
+fig, axes = plt.subplots(1, 1, figsize=(12, 10))
 
 # Create grid of salinity and temperature
 minS = 30
@@ -115,43 +115,68 @@ axes.plot(sx, melting_line(sx), color ="pink", linestyle = "dashed",
 
 # Plot TS data
 
-for i in [6, 7, 8, 10]:  
+# FYI: the cast number is the same as the index
+for i in [7, 8, 9, 11]:  
     color = dist_colormap(dist_norm(ctd_distances[i]))
     color = "C1"
-    if i ==6:
+    if i ==7:
         label = "S branch (7, 8, 9, 11)"
     else: label = ""
-    axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5, label = label)
+    #axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5, label = label)
     
     
-for i in [5, 11]:  
+for i in [6, 12, 21, 5, 4, 22, 23, 3]:  
     color = dist_colormap(dist_norm(ctd_distances[i]))
-    color = "C0"
-    if i ==5:
-        label = "Midfjord (6, 12)"
+    #color = "C0"
+    if i ==6:
+        label = ""
     else: label = ""
-    axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5, label = label)
+    #axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5, label = label)
     
 
-for i in [15, 16]:  
+for i in [16, 17]:  
     color = dist_colormap(dist_norm(ctd_distances[i]))
-    color = "C1"
-    if i ==15:
+    color = "C2"
+    if i ==16:
         label = "N branch (16, 17)"
     else: label = ""
     #axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5, label = label)
+    
+for i in [13, 14, 15, 18, 20]:  
+    color = dist_colormap(dist_norm(ctd_distances[i]))
+    color = "indigo"
+    if i ==13:
+        label = "Shallows (13, 14, 15, 18, 20)"
+    else: label = ""
+    axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5, label = label)
+    
+for i in [0, 1, 2, 29]:  
+    color = dist_colormap(dist_norm(ctd_distances[i]))
+    color = "C3"
+    if i ==0:
+        label = "Shelf (0, 1, 2, 29)"
+    else: label = ""
+    #axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5, label = label)
+    
+for i in [24, 25, 26, 27, 28]:  
+    color = dist_colormap(dist_norm(ctd_distances[i]))
+    color = "C4"
+    if i ==24:
+        label = "NW branch (24, 25, 26, 27, 28)"
+    else: label = ""
+    axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5, label = label)
     
     
     
 axes.set_xlabel("Absolute Salinity [g/kg]")
 axes.set_ylabel("Conservative Temperature [°C]")
 axes.set_xlim(32, 35)
-axes.set_ylim(-0.5, 3)
+axes.set_ylim(-1, 3.3)
 
 
 axes.legend()
-# cbar = fig.colorbar(dist_sm, ax=axes, orientation='vertical')
-# cbar.set_label("Distance from Station 6 [km]")
+cbar = fig.colorbar(dist_sm, ax=axes, orientation='vertical')
+cbar.set_label("Distance from Station 12 [km]")
 
 
 

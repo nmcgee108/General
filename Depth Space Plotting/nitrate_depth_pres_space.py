@@ -102,22 +102,23 @@ for i in range(19): #[1, 2, 3, 7, 8, 12, 13, 14, 15, 16, 17, 18]:
         linewidth = 1
         if castnums[i]==14: label = "Trough"
     
-    #axes.plot(nitrate[i], depth, color = color, zorder = zorder, linewidth=linewidth, label = label)
-    axes.plot(nitrate[i], sigma0_padded[i], color = color, zorder = zorder, linewidth =linewidth, label = label)
+    axes.plot(nitrate[i], -depth, color = color, zorder = zorder, linewidth=linewidth, label = label)
+    #axes.plot(nitrate[i], sigma0_padded[i], color = color, zorder = zorder, linewidth =linewidth, label = label)
 
 axes.legend(loc="lower left")
 axes.set_xlabel(r"Nitrate [$\mu$M]")
 
 # DEPTH PROFILE STUFF
-#axes.set_ylabel(r"Depth [m]")
+axes.set_ylabel(r"Depth [m]")
+axes.set_ylim(-500, 50)
 
 # DENSITY PROFILE STUFF
-axes.invert_yaxis()
-axes.set_ylabel(r"Potential Density Anomaly [kg/m$^3$]")
-axes.set_ylim(27.8, 26.25)
-axes.set_xlim(10, 21)
-axes.axhspan(27.05, 27.45, color = 'skyblue', alpha = 0.3)
-axes.axhspan(25.7, 26.8, color = 'thistle', alpha = 0.3)
+# axes.invert_yaxis()
+# axes.set_ylabel(r"Potential Density Anomaly [kg/m$^3$]")
+# axes.set_ylim(27.8, 26.25)
+# axes.set_xlim(10, 21)
+# axes.axhspan(27.05, 27.45, color = 'skyblue', alpha = 0.3)
+# axes.axhspan(25.7, 26.8, color = 'thistle', alpha = 0.3)
 
 
 

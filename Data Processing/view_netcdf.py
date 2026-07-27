@@ -7,7 +7,7 @@ Created on Tue Jun 16 11:29:19 2026
 """
 from netCDF4 import Dataset
 
-ncfile = Dataset("/Users/nataliemcgee/Documents/Upernavik Data/Morven CTD Data 2013-2019/2015_profiles.nc", 'r')
+ncfile = Dataset("/Users/nataliemcgee/Downloads/NO3_202106.nc", 'r')
 
 # View all info
 print(ncfile)
