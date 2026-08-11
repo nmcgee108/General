@@ -43,14 +43,15 @@ S_AW = 34.6  # Rough estimate!
 O_AW = 233.10  # Rough estimate! 5.35 * 43.570 to get umol/kg
 
 # # Currently using shelf PW
-# T_PW = -1.5     # Rough estimate!
-# S_PW = 33.2     # Rough estimate!
-# O_PW = 326.78   # Rough estimate! 7.5 * 43.570 to get umol/kg
+T_PW = -1.5     # Rough estimate!
+S_PW = 33.2     # Rough estimate!
+O_PW = 326.78   # Rough estimate! 7.5 * 43.570 to get umol/kg
+
 
 # # Currently using FJORD PW
-T_PW = 0.45    # Rough estimate!
-S_PW = 33.6     # Rough estimate!
-O_PW = 270.13   # Rough estimate!
+# T_PW = 0.45    # Rough estimate!
+# S_PW = 33.6     # Rough estimate!
+# O_PW = 270.13   # Rough estimate!
 
 
 T_SMW = -87 
@@ -80,7 +81,7 @@ A_norm = (A[:-1, :] - Amean[:, np.newaxis]) / Astd[:, np.newaxis]
 A_norm = np.vstack([A_norm, [1, 1, 1, 1]])
 
 # Weights [T=121, S=97, O=1, mass=121 (same as T)]. From lindeman et al. 2024
-Wx = np.array([121, 97, 1, 121])
+Wx = np.array([121, 97, 10, 121])
 
 # Apply weights and check condition number
 Aw_norm = Wx[:, np.newaxis] * A_norm
