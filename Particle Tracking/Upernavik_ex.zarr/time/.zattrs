@@ -4,7 +4,8 @@
         "obs"
     ],
     "axis": "T",
+    "calendar": "standard",
     "long_name": "",
     "standard_name": "time",
-    "units": "seconds"
+    "units": "seconds since 2021-06-01"
 }

@@ -23,13 +23,14 @@
                 "id": "blosc",
                 "shuffle": 1
             },
+            "dimension_separator": ".",
             "dtype": "<f4",
             "fill_value": "NaN",
             "filters": null,
             "order": "C",
             "shape": [
                 5,
-                1
+                693
             ],
             "zarr_format": 2
         },
@@ -55,13 +56,14 @@
                 "id": "blosc",
                 "shuffle": 1
             },
+            "dimension_separator": ".",
             "dtype": "<f4",
             "fill_value": "NaN",
             "filters": null,
             "order": "C",
             "shape": [
                 5,
-                1
+                693
             ],
             "zarr_format": 2
         },
@@ -86,12 +88,13 @@
                 "id": "blosc",
                 "shuffle": 1
             },
+            "dimension_separator": ".",
             "dtype": "<i4",
             "fill_value": null,
             "filters": null,
             "order": "C",
             "shape": [
-                1
+                693
             ],
             "zarr_format": 2
         },
@@ -112,13 +115,14 @@
                 "id": "blosc",
                 "shuffle": 1
             },
+            "dimension_separator": ".",
             "dtype": "<f8",
             "fill_value": "NaN",
             "filters": null,
             "order": "C",
             "shape": [
                 5,
-                1
+                693
             ],
             "zarr_format": 2
         },
@@ -128,9 +132,10 @@
                 "obs"
             ],
             "axis": "T",
+            "calendar": "standard",
             "long_name": "",
             "standard_name": "time",
-            "units": "seconds"
+            "units": "seconds since 2021-06-01"
         },
         "trajectory/.zarray": {
             "chunks": [
@@ -169,13 +174,14 @@
                 "id": "blosc",
                 "shuffle": 1
             },
+            "dimension_separator": ".",
             "dtype": "<f4",
             "fill_value": "NaN",
             "filters": null,
             "order": "C",
             "shape": [
                 5,
-                1
+                693
             ],
             "zarr_format": 2
         },

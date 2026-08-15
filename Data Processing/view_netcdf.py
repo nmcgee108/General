@@ -16,6 +16,6 @@ print(ncfile)
 print(ncfile.variables.keys())
 
 # View metadata of one variable
-print(ncfile.variables["Conservative_Temperature"])
+print(ncfile.variables["latitude"][:])
 
-print(ncfile["Nitrate"][3][40:50])
+#print(ncfile["Nitrate"][3][40:50])

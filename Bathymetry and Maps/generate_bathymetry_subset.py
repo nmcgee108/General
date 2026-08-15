@@ -38,8 +38,8 @@ proj = pyproj.Proj('EPSG:3413')
 # Instead of converting the whole grid to lon/lat,
 # convert your desired lon/lat box corners into native x/y and slice directly
 
-lon_min, lon_max = -52, -38
-lat_min, lat_max =  52,  62
+lon_min, lon_max = -63.5, -55
+lat_min, lat_max =  72.6,  75.5
 
 # Convert all 4 corners to native x/y to get a safe bounding box
 cx, cy = proj([lon_min, lon_max, lon_min, lon_max],
@@ -57,7 +57,7 @@ lon_bath, lat_bath = proj(xx_trim, yy_trim, inverse=True)
 
 # --- SAVE SUBSET ---
 np.savez(
-    "OSNAP_bedmachine_subset1.npz",
+    "Upernavik_bedmachine_subset1.npz",
     bed=bed_trim,
     x=x_trim,
     y=y_trim

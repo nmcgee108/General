@@ -10,13 +10,14 @@
         "id": "blosc",
         "shuffle": 1
     },
+    "dimension_separator": ".",
     "dtype": "<f4",
     "fill_value": "NaN",
     "filters": null,
     "order": "C",
     "shape": [
         5,
-        1
+        693
     ],
     "zarr_format": 2
 }
