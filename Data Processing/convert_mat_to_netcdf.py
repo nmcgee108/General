@@ -12,12 +12,21 @@ import xarray as xr
 import numpy as np
 from datetime import datetime, timedelta
 
-mat = loadmat("//Users/nataliemcgee/Documents/Upernavik Data/Morven CTD Data 2013-2019/upernavik2015.mat")
+mat = loadmat("/Volumes/science_share/gdwbc_and_CF_sadcp_segments.mat", squeeze_me=True)
 print(mat.keys())
 
-for k in mat.keys():
-    if not k.startswith('__'):
-        print(k, mat[k].shape, mat[k].dtype)
+# for k in mat.keys():
+#     if not k.startswith('__'):
+#         print(k, mat[k].shape, mat[k].dtype)
+        
+        
+data = mat["vm_data"]
+
+print(data[0, 0].dtype)
+
+z_bin = data[0, 0]["z_bin"]
+
+print(z_bin[0][0].squeeze().astype(float))
         
 
 # deal with matlab times
@@ -29,6 +38,7 @@ for k in mat.keys():
 # times = [matlab_datenum_to_datetime(t)
 #          for t in mat["Xtime"].squeeze()]
 
+print(hi)
 
 # Helper to extract a field from the nested MATLAB struct
 def get_field(mat, field):

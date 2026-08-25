@@ -25,14 +25,17 @@ warnings.filterwarnings("ignore", category=UserWarning, module="parcels")
 filenames = {
     "U": "/Users/nataliemcgee/Desktop/Model Output/Uvel_202106.nc",
     "V": "/Users/nataliemcgee/Desktop/Model Output/Vvel_202106.nc",
+    "W": "/Users/nataliemcgee/Desktop/Model Output/Wvel_202106.nc",
 }
 
 variables = {
     "U": "Uvel",
     "V": "Vvel",
+    "W": "Wvel",
 }
+
 dimensions = {"lat": "latitude", "lon": "longitude", 
-              #"depth": "depths"
+              "depth": "depths"
               }
 
 start_date = np.datetime64('2021-06-01')
@@ -68,27 +71,41 @@ pset = parcels.ParticleSet.from_line(
     size=5,  # releasing 5 particles
     start=(-55.5, 73),  # releasing on a line: the start longitude and latitude
     finish=(-56.5, 73),  # releasing on a line: the end longitude and latitude
-    #depth = 500,
+    depth = 500,
     time=start_date
 )
 
 #print(pset)
 
 # Plot zonal velocity
-fieldset.computeTimeChunk()
 
 fig, ax = plt.subplots(
     subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-42)}
 )
 
+target_depth = 300 
+depth_index = np.argmin(np.abs(fieldset.W.grid.depth - target_depth))
+print("Selected depth:", fieldset.W.grid.depth[depth_index])
+
+time_index = 0
+
+fieldset.computeTimeChunk(time = 30, dt = 1)
+
+fig, ax = plt.subplots(
+    subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-42)}
+
+)
+
+
 mesh = ax.pcolormesh(
-    fieldset.U.grid.lon,
-    fieldset.U.grid.lat,
-    fieldset.U.data[0, :, :],
+    fieldset.W.grid.lon,
+    fieldset.W.grid.lat,
+    fieldset.W.data[time_index, depth_index, :, :],
     transform=ccrs.PlateCarree(),
 )
+
 fig.colorbar(mesh, ax=ax, orientation='vertical', pad=0.05)
-ax.coastlines()
+
 
 
 # Plot particle positions
@@ -115,10 +132,7 @@ print(pset)
 ds = xr.open_zarr("Upernavik_ex.zarr")
 ds.traj.plot(margin=2)
 
-
-ax.coastlines()
-ax.add_feature(cartopy.feature.LAND, color='lightgray', zorder = 4)
-ax.set_extent([-57.5, -54, 72.5, 73.1], crs=ccrs.PlateCarree())
+ax.set_extent([-55.15, -54.1, 72.71, 73.05], crs=ccrs.PlateCarree())
 
 
 plt.show()
