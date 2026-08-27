@@ -12,7 +12,7 @@ import xarray as xr
 import numpy as np
 from datetime import datetime, timedelta
 
-mat = loadmat("/Volumes/science_share/gdwbc_and_CF_sadcp_segments.mat", squeeze_me=True)
+mat = loadmat("/Volumes/science_share/gdwbc_CF_LS_sadcp_segments.mat", squeeze_me=True)
 print(mat.keys())
 
 # for k in mat.keys():
@@ -22,11 +22,15 @@ print(mat.keys())
         
 data = mat["vm_data"]
 
-print(data[0, 0].dtype)
+print(data[0].dtype)
 
-z_bin = data[0, 0]["z_bin"]
+z_bin = data[0]["z_bin"].item().T
+v_dt_bin = data[0]["v_dt_bin"].item().T
+u_dt_bin = data[0]["u_dt_bin"].item().T
 
-print(z_bin[0][0].squeeze().astype(float))
+lat_bin = data[0]["lat_bin"].item()
+lon_bin = data[0]["lon_bin"].item()
+
         
 
 # deal with matlab times
@@ -38,35 +42,35 @@ print(z_bin[0][0].squeeze().astype(float))
 # times = [matlab_datenum_to_datetime(t)
 #          for t in mat["Xtime"].squeeze()]
 
-print(hi)
 
-# Helper to extract a field from the nested MATLAB struct
-def get_field(mat, field):
-    return mat['new2015'][field][0][0].squeeze().astype(float)
+# # Helper to extract a field from the nested MATLAB struct
+# def get_field(mat, field):
+#     return mat['new2015'][field][0][0].squeeze().astype(float)
 
-lon   = get_field(mat, 'lon')
-lat   = get_field(mat, 'lat')
-CT    = get_field(mat, 'CT')
-SA    = get_field(mat, 'SA')
-depth = get_field(mat, 'depth')
+# lon   = get_field(mat, 'lon')
+# lat   = get_field(mat, 'lat')
+# CT    = get_field(mat, 'CT')
+# SA    = get_field(mat, 'SA')
+# depth = get_field(mat, 'depth')
 
-print(lon.shape, lat.shape, CT.shape, SA.shape, depth.shape)
+print(lon_bin.shape, lat_bin.shape, v_dt_bin.shape)
 
 
 ds = xr.Dataset(
     data_vars={
-        "Conservative_Temperature": (["cast", "depth"], CT),
-        "Absolute_Salinity":        (["cast", "depth"], SA),
+        "Vvel_dt": (["location", "depth"], v_dt_bin),
+        "Uvel_dt": (["location", "depth"], u_dt_bin),
     },
     coords={
-        "depth":     depth[0, :],   # just the first cast's depth vector
-        "latitude":  ("cast", lat),
-        "longitude": ("cast", lon),
+        "depth": z_bin[0, :],   # just the first cast's depth vector
+        "latitude":  ("location", lat_bin),
+        "longitude": ("location", lon_bin),
     }
 )
 
 
-ds.to_netcdf("2015_profiles.nc")
+
+ds.to_netcdf("adcp_data_CF_LS.nc")
 print("File Saved")
 
 

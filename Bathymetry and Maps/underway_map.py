@@ -14,6 +14,7 @@ import pandas as pd
 import matplotlib.colors as mcolors
 from datetime import datetime
 import pyproj
+import xarray as xr
 
 plt.rcParams['font.size'] = 18
 
@@ -45,9 +46,11 @@ def to_timestamp(date, time):
     
 timestamps = np.array([to_timestamp(d, t) for d, t in zip(dates, times)])
     
-    
-start_date, start_time = "2026/08/03", "22:18:00.00"  ## Northern section
-end_date, end_time   =   "2026/08/05", "00:00:00.00"
+start_date, start_time = "2026/07/01", "00:00:00.00"  ## ALL
+end_date, end_time   =   "2026/9/05", "00:00:00.00"
+
+# start_date, start_time = "2026/08/03", "22:18:00.00"  ## Northern section
+# end_date, end_time   =   "2026/08/05", "00:00:00.00"
 
 # start_date, start_time = "2026/08/11", "00:30:00.00" ## PCS Section 1
 # end_date, end_time   =   "2026/08/11", "18:00:00.00"
@@ -88,8 +91,9 @@ fig = plt.figure(figsize=(23, 5), layout='compressed')
 ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=-42))
 
 ax.coastlines(resolution='10m')
-#ax.set_extent([-46.2, -40, 59.52, 60.5], crs=ccrs.PlateCarree())  # extent always in lon/lat
-ax.set_extent([-44, -40, 59.5, 60.5], crs=ccrs.PlateCarree())
+# ax.set_extent([-47.4, -38, 59.52, 60.5], crs=ccrs.PlateCarree())  # full southern end of greenland
+# ax.set_extent([-44, -40, 59.5, 60.5], crs=ccrs.PlateCarree()) # Right side of greenland
+ax.set_extent([-44, -38, 59.5, 60.5], crs=ccrs.PlateCarree())
 
 
 # Bathymetry — lon/lat coords, PlateCarree transform
@@ -114,6 +118,28 @@ valid = np.isfinite(param_to_plot) & np.isfinite(lon) & np.isfinite(lat) & (flow
 ax.scatter(lon[valid], lat[valid],
            color=param_colormap(param_norm(param_to_plot[valid])),
            s=40, transform=map_crs, zorder=4)
+
+###### Add ADCP vectors ######
+
+netcdf = "/Users/nataliemcgee/Documents/OSNAP/adcp_data_CF_LS.nc"
+ds = xr.open_dataset(netcdf)
+
+# View all info
+
+print(ds["Vvel_dt"].sel(depth=40, method="nearest").values)
+
+ax.quiver(
+    ds["longitude"].values,
+    ds["latitude"].values,
+    ds["Uvel_dt"].sel(depth=40, method="nearest").values,
+    ds["Vvel_dt"].sel(depth=40, method="nearest").values,
+    angles='xy',
+    scale_units='xy',
+    color='blue',
+    transform=ccrs.PlateCarree()
+)
+
+
 
 # Colorbars
 cbar1 = fig.colorbar(pc, ax=ax, location='bottom', aspect = 30)
