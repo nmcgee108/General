@@ -22,9 +22,9 @@ warnings.filterwarnings("ignore", category=UserWarning, module="parcels")
 
 # --- Fieldset ---
 filenames = {
-    "U": "/Users/nataliemcgee/Desktop/Model Output/Uvel_202106.nc",
-    "V": "/Users/nataliemcgee/Desktop/Model Output/Vvel_202106.nc",
-    "W": "/Users/nataliemcgee/Desktop/Model Output/Wvel_202106.nc",
+    "U": "/Users/nataliemcgee/Desktop/Model Output/Uvel_202107.nc",
+    "V": "/Users/nataliemcgee/Desktop/Model Output/Vvel_202107.nc",
+    "W": "/Users/nataliemcgee/Desktop/Model Output/Wvel_202107.nc",
 }
 
 variables = {
@@ -36,10 +36,11 @@ dimensions = {"lat": "latitude", "lon": "longitude",
               "depth": "depths"
               }
 
-start_date = np.datetime64('2021-06-01')
+#start_date = np.datetime64('2021-06-01')
+start_date = np.datetime64('2021-07-01')
 
 # 1 file containing 30 daily timesteps
-timestamps = [np.array([start_date + np.timedelta64(i, 'D') for i in range(30)])]
+timestamps = [np.array([start_date + np.timedelta64(i, 'D') for i in range(31)])]
 
 print(f"Number of files: {len(timestamps)}")           # should be 1
 print(f"Timestamps in file: {len(timestamps[0])}")     # should be 30
@@ -94,7 +95,7 @@ pc = ax.pcolormesh(lon_bath, lat_bath, bed_trim,
 fig.colorbar(pc, ax=ax, orientation='vertical', pad=0.05, label='Depth')
     
 ############
-depth = 150
+depth = 170
 pset = parcels.ParticleSet.from_line(
     fieldset=fieldset,
     pclass=parcels.JITParticle,

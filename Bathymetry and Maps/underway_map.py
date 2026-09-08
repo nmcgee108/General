@@ -12,7 +12,7 @@ import numpy as np
 import glob
 import pandas as pd
 import matplotlib.colors as mcolors
-from datetime import datetime
+from datetime import datetime, timedelta
 import pyproj
 import xarray as xr
 
@@ -40,9 +40,9 @@ SSTemp = df[" SBE48T"].values
 flow = df[" FLOW"]
 
 
+
 def to_timestamp(date, time):
-    timestamp = datetime.strptime(f"{date} {time}", "%Y/%m/%d %H:%M:%S.%f").timestamp()
-    return timestamp
+    return datetime.strptime(f"{date} {time}", "%Y/%m/%d %H:%M:%S.%f")
     
 timestamps = np.array([to_timestamp(d, t) for d, t in zip(dates, times)])
     
@@ -91,9 +91,9 @@ fig = plt.figure(figsize=(23, 5), layout='compressed')
 ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=-42))
 
 ax.coastlines(resolution='10m')
-# ax.set_extent([-47.4, -38, 59.52, 60.5], crs=ccrs.PlateCarree())  # full southern end of greenland
-# ax.set_extent([-44, -40, 59.5, 60.5], crs=ccrs.PlateCarree()) # Right side of greenland
-ax.set_extent([-44, -38, 59.5, 60.5], crs=ccrs.PlateCarree())
+ax.set_extent([-47.4, -38, 59.4, 60.5], crs=ccrs.PlateCarree())  # full southern end of greenland
+#ax.set_extent([-44, -40, 59.5, 60.5], crs=ccrs.PlateCarree()) # Right side of greenland
+# ax.set_extent([-48, -44.8, 58.8, 60.5], crs=ccrs.PlateCarree())
 
 
 # Bathymetry — lon/lat coords, PlateCarree transform
@@ -103,12 +103,14 @@ pc = ax.pcolormesh(lon_bath, lat_bath, bed_trim,
 
 # SST scatter — also lon/lat, also PlateCarree
 
-param_to_plot = SSTemp
+param_to_plot = SSSal
 
 max_val = np.nanmax(param_to_plot)
 min_val = np.nanmin(param_to_plot)
-max_val = 11
-param_colormap = plt.colormaps['plasma']
+#max_val = 11 #temp
+min_val = 27 #salinity 
+# param_colormap = plt.colormaps['plasma']
+param_colormap = plt.colormaps['viridis']
 param_norm     = mcolors.Normalize(vmin=min_val, vmax=max_val)
 param_sm       = plt.cm.ScalarMappable(cmap=param_colormap, norm=param_norm)
 param_sm.set_array([])
@@ -124,28 +126,89 @@ ax.scatter(lon[valid], lat[valid],
 netcdf = "/Users/nataliemcgee/Documents/OSNAP/adcp_data_CF_LS.nc"
 ds = xr.open_dataset(netcdf)
 
-# View all info
+depth = 20 #Set the depth of ADCP info we want
+print("ADCP Depth:", ds["depth"].sel(depth=depth, method="nearest").values)
 
-print(ds["Vvel_dt"].sel(depth=40, method="nearest").values)
+adcp_timestamps = ds["timestamp"].values
 
-ax.quiver(
-    ds["longitude"].values,
-    ds["latitude"].values,
-    ds["Uvel_dt"].sel(depth=40, method="nearest").values,
-    ds["Vvel_dt"].sel(depth=40, method="nearest").values,
+start_np = np.datetime64(start_timestamp)
+end_np   = np.datetime64(end_timestamp)
+
+time_mask = (adcp_timestamps >= start_np) & (adcp_timestamps <= end_np)
+
+adcp_lon = ds["longitude"][time_mask].values
+adcp_lat = ds["latitude"][time_mask].values
+uvel = ds["Uvel_dt"][time_mask].sel(depth=depth, method="nearest").values
+vvel = ds["Vvel_dt"][time_mask].sel(depth=depth, method="nearest").values
+adcp_timestamps = adcp_timestamps[time_mask]
+
+# Interpolate data in time, plot every 30 mins
+times_interp = np.arange(adcp_timestamps[0], adcp_timestamps[-1], timedelta(minutes = 60))
+
+uvel_interp = np.interp(times_interp.astype('float64'), 
+                        adcp_timestamps.astype('float64'), 
+                        uvel)
+
+vvel_interp = np.interp(times_interp.astype('float64'), 
+                        adcp_timestamps.astype('float64'), 
+                        vvel)
+
+lon_interp = np.interp(times_interp.astype('float64'), 
+                       adcp_timestamps.astype('float64'), 
+                       adcp_lon)
+
+lat_interp = np.interp(times_interp.astype('float64'), 
+                       adcp_timestamps.astype('float64'), 
+                       adcp_lat)
+
+
+
+magnitude = [(u**2+v**2)**(1/2) for u, v in zip(uvel_interp, vvel_interp)]
+
+adcp_colormap = plt.colormaps['Blues']
+adcp_norm = mcolors.Normalize(vmin=0.008, vmax=0.7)
+adcp_sm = plt.cm.ScalarMappable(cmap=adcp_colormap, norm=adcp_norm)
+
+
+q=ax.quiver(
+    lon_interp,
+    lat_interp,
+    uvel_interp,
+    vvel_interp,
     angles='xy',
-    scale_units='xy',
-    color='blue',
-    transform=ccrs.PlateCarree()
+    color=adcp_colormap(adcp_norm(magnitude)),
+    transform=ccrs.PlateCarree(),
+    zorder = 3,
+    scale_units='inches', 
+    scale=0.3
 )
 
+qk1 = ax.quiverkey(
+    q, 
+    X=0.85, Y=0.75,       # location
+    U=0.5,              # vector magnitude represented by the reference arrow
+    label='0.5 m/s',
+    color=adcp_colormap(0.5),
+    labelpos='S',
+    labelcolor = "white"      
+)
 
+qk2 = ax.quiverkey(
+    q, 
+    X=0.85, Y=0.9,       # location
+    U=0.1,              # vector magnitude represented by the reference arrow
+    label='0.1 m/s',
+    color=adcp_colormap(0.1),
+    labelpos='S'       ,
+    labelcolor = "white" 
+)
 
 # Colorbars
 cbar1 = fig.colorbar(pc, ax=ax, location='bottom', aspect = 30)
 cbar1.set_label("Bed Elevation [m]")
 cbar2 = fig.colorbar(param_sm, ax=ax, pad=0.02, location='right')
-cbar2.set_label("Temperature [°C]")
+# cbar2.set_label("Temperature [°C]")
+cbar2.set_label("Salinity [PSU]")
 
 plt.show()
 
