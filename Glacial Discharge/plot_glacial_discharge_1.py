@@ -12,12 +12,12 @@ import matplotlib.pyplot as plt
 
 plt.rcParams['font.size'] = 14
 
-filename = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/ice_discharge/combined_mar_racmo_discharge1.nc"
+filename = "/Users/nataliemcgee/Desktop/Large Datasets/ice_discharge/ice_discharge/combined_mar_racmo_discharge1.nc"
 discharge_ds = xr.open_dataset(filename)
 
 fjords = [42733, 42968, 43247]
 
-fig, axes = plt.subplots(2, 1, figsize=(9, 14))
+fig, axes = plt.subplots(3, 1, figsize=(9, 14))
 
 date_ranges = [
     ["2013-01-01", "2013-12-31"],
@@ -41,12 +41,15 @@ for j in range(5):
     highlight_doy = np.datetime64(highlight_dates[j]).astype('datetime64[D]').astype(int) - \
                     np.datetime64(f"{highlight_dates[j][:4]}-01-01").astype('datetime64[D]').astype(int) + 1
 
-    for i in range(2):
+    for i in range(3):
 
         discharge_subset = (
             discharge_ds.Discharge
             .sel(Fjord=fjords[i], Model="RACMO")
             .where(valid_dates, drop=True))
+        
+        if j ==0:
+            print(discharge_subset.lat.item(), discharge_subset.lon.item())
 
         # 7-day rolling stats
         weekly_mean = discharge_subset.rolling(Date=7, center=True, min_periods=1).mean()
@@ -131,6 +134,7 @@ for ax in axes:
 
 axes[0].set_title("Upernavik N", fontweight='bold')
 axes[1].set_title("Upernavik C", fontweight='bold')
+axes[2].set_title("Upernavik S", fontweight='bold')
 
 #axes[1].legend(loc="upper right")
 

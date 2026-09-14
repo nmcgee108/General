@@ -13,7 +13,7 @@
         },
         "lat/.zarray": {
             "chunks": [
-                10,
+                400,
                 1
             ],
             "compressor": {
@@ -29,8 +29,8 @@
             "filters": null,
             "order": "C",
             "shape": [
-                10,
-                693
+                11600,
+                696
             ],
             "zarr_format": 2
         },
@@ -46,7 +46,7 @@
         },
         "lon/.zarray": {
             "chunks": [
-                10,
+                400,
                 1
             ],
             "compressor": {
@@ -62,8 +62,8 @@
             "filters": null,
             "order": "C",
             "shape": [
-                10,
-                693
+                11600,
+                696
             ],
             "zarr_format": 2
         },
@@ -94,7 +94,7 @@
             "filters": null,
             "order": "C",
             "shape": [
-                693
+                696
             ],
             "zarr_format": 2
         },
@@ -105,7 +105,7 @@
         },
         "time/.zarray": {
             "chunks": [
-                10,
+                400,
                 1
             ],
             "compressor": {
@@ -121,8 +121,8 @@
             "filters": null,
             "order": "C",
             "shape": [
-                10,
-                693
+                11600,
+                696
             ],
             "zarr_format": 2
         },
@@ -135,11 +135,11 @@
             "calendar": "standard",
             "long_name": "",
             "standard_name": "time",
-            "units": "seconds since 2021-07-01"
+            "units": "seconds since 2021-08-01"
         },
         "trajectory/.zarray": {
             "chunks": [
-                10
+                400
             ],
             "compressor": {
                 "blocksize": 0,
@@ -148,12 +148,13 @@
                 "id": "blosc",
                 "shuffle": 1
             },
+            "dimension_separator": ".",
             "dtype": "<i8",
             "fill_value": null,
             "filters": null,
             "order": "C",
             "shape": [
-                10
+                11600
             ],
             "zarr_format": 2
         },
@@ -164,7 +165,7 @@
         },
         "z/.zarray": {
             "chunks": [
-                10,
+                400,
                 1
             ],
             "compressor": {
@@ -180,8 +181,8 @@
             "filters": null,
             "order": "C",
             "shape": [
-                10,
-                693
+                11600,
+                696
             ],
             "zarr_format": 2
         },
