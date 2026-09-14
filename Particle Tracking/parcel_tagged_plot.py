@@ -74,7 +74,7 @@ depths = np.linspace(100, 600, n_depth)
 # build the full grid: every horizontal point repeated at every depth
 lon_grid = np.tile(lons, n_depth)      # [l0,l1,l2,l3,l4, l0,l1,l2,l3,l4, ...]
 lat_grid = np.tile(lats, n_depth)
-depth_grid = np.repeat(depths, n_horiz)  # [100,100,100,100,100, 350,350,..., 600,...]
+depth_grid = np.repeat(depths, n_horiz)  # [100,100,100,100,100,350,350,..., 600,...]
 
 pset = parcels.ParticleSet(
     fieldset=fieldset,
@@ -87,14 +87,14 @@ pset = parcels.ParticleSet(
 )
 
 
-# #--- Run simulation ---
-# output_file = pset.ParticleFile(name="Upernavik_ex.zarr", outputdt=timedelta(hours=1))
-# pset.execute(
-#     parcels.AdvectionRK4,
-#     runtime=timedelta(days=29),
-#     dt=timedelta(hours=0.1),
-#     output_file=output_file,
-# )
+#--- Run simulation ---
+output_file = pset.ParticleFile(name="/Users/nataliemcgee/Desktop/Model Output/Upernavik_ex.zarr", outputdt=timedelta(hours=1))
+pset.execute(
+    parcels.AdvectionRK4,
+    runtime=timedelta(days=29),
+    dt=timedelta(hours=0.1),
+    output_file=output_file,
+)
 
 # lon1_fixed = -54.3532829284668  # Glacier S
 # lat1_fixed = 72.85934448242188
