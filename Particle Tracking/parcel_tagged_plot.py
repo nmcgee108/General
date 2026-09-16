@@ -64,12 +64,15 @@ depth = 3
 n_horiz = 20    # particles along the line
 n_depth = 20     # particles in depth
 
-# the line in lon/lat
+# lons = np.linspace(-54.53, -54.427, n_horiz)
+# lats = np.linspace(72.98, 72.967, n_horiz) # GLACIER N
+
 lons = np.linspace(-54.43, -54.40, n_horiz)
-lats = np.linspace(72.926, 72.955, n_horiz)
+lats = np.linspace(72.926, 72.955, n_horiz) # Glacier C
+
 
 # the depths
-depths = np.linspace(100, 600, n_depth)
+depths = np.linspace(1, 700, n_depth)
 
 # build the full grid: every horizontal point repeated at every depth
 lon_grid = np.tile(lons, n_depth)      # [l0,l1,l2,l3,l4, l0,l1,l2,l3,l4, ...]
@@ -87,20 +90,20 @@ pset = parcels.ParticleSet(
 )
 
 
-#--- Run simulation ---
-output_file = pset.ParticleFile(name="/Users/nataliemcgee/Desktop/Model Output/Upernavik_ex.zarr", outputdt=timedelta(hours=1))
-pset.execute(
-    parcels.AdvectionRK4,
-    runtime=timedelta(days=29),
-    dt=timedelta(hours=0.1),
-    output_file=output_file,
-)
+# #--- Run simulation ---
+# output_file = pset.ParticleFile(name="/Users/nataliemcgee/Desktop/Model Output/Upernavik_ex.zarr", outputdt=timedelta(hours=1))
+# pset.execute(
+#     parcels.AdvectionRK4,
+#     runtime=timedelta(days=29),
+#     dt=timedelta(hours=0.1),
+#     output_file=output_file,
+# )
 
-# lon1_fixed = -54.3532829284668  # Glacier S
-# lat1_fixed = 72.85934448242188
+lon1_fixed = -54.3532829284668  # Glacier S
+lat1_fixed = 72.85934448242188
 
-lon1_fixed = -54.447349548339844 # Glacier N
-lat1_fixed = 72.9875717163086
+# lon1_fixed = -54.447349548339844 # Glacier N
+# lat1_fixed = 72.9875717163086
 
 def find_distance_vectorized(lon2, lat2, lon1=lon1_fixed, lat1=lat1_fixed):
     R = 6371.0  # km
@@ -113,32 +116,55 @@ def find_distance_vectorized(lon2, lat2, lon1=lon1_fixed, lat1=lat1_fixed):
     c = 2*np.arctan2(np.sqrt(a), np.sqrt(1-a))
     return R * c
 
-ds = xr.open_zarr("Upernavik_ex.zarr")
 
-lon = ds['lon'].values  # shape (trajectory, obs)
-lat = ds['lat'].values
+# --- Load output ---
+ds = xr.open_zarr("/Users/nataliemcgee/Desktop/Model Output/Upernavik_ex.zarr")
 
-# Particle tags
-tags = np.array([False for i in range(n_horiz*n_depth*31)])
-print(tags)
+lon  = ds['lon'].values    # shape (traj, obs)
+lat  = ds['lat'].values
+z    = ds['z'].values
+time = ds['time'].values
 
-dist = find_distance_vectorized(lon, lat)   # shape (trajectory, obs)
-tags = np.any(dist < 5, axis=1)             # True if particle ever enters zone
+n_traj = lon.shape[0]
+print(f"Number of trajectories in file: {n_traj}")
 
-print(tags)
+# --- Recover each trajectory's initial (release) depth ---
+initial_depth = np.full(n_traj, np.nan)
+for i in range(n_traj):
+    valid = ~np.isnan(time[i])
+    if valid.any():
+        first_idx = np.argmax(valid)   # index of first non-NaN obs
+        initial_depth[i] = z[i, first_idx]
 
-combined_depth_grid = [depth_grid for i in range(29)]
+# --- Tag particles that ever get within 5 km of the glacier ---
+dist = find_distance_vectorized(lon, lat)   # shape (traj, obs)
+tags = np.any(dist < 1, axis=1)             # True if particle ever enters zone
 
-# unique depth levels and count of True at each
-unique_depths = np.unique(combined_depth_grid)
-counts = np.array([np.sum(tags[combined_depth_grid == d]) for d in unique_depths])
+# --- Group by initial depth ---
+unique_depths = np.unique(initial_depth)
+counts = np.array([np.sum(tags[initial_depth == d]) for d in unique_depths])
+n_per_depth = np.array([np.sum(initial_depth == d) for d in unique_depths])
+
+# --- Plot ---
+depth_spacing = depths[1] - depths[0]
 
 fig, ax = plt.subplots()
-ax.barh(unique_depths, (counts/n_horiz)*100)
-ax.invert_yaxis()  # so shallow depths are at top, like a real depth profile
+ax.barh(unique_depths, (counts / n_per_depth) * 100, height=depth_spacing * 0.9)
+ax.invert_yaxis()
 ax.set_xlabel("% of particles entering zone")
 ax.set_ylabel("Depth (m)")
 ax.set_title("% of C Particles that enter <1 km of N plume")
 plt.show()
+
+# success_depths = initial_depth[tags]
+
+# fig, ax = plt.subplots()
+# ax.hist(success_depths, bins=20, orientation='horizontal')
+# ax.invert_yaxis()
+# ax.set_xlabel("Number of particles entering zone")
+# ax.set_ylabel("Depth (m)")
+# ax.set_title("Depths of particles that enter <1 km of N plume")
+# plt.show()
+
 
 

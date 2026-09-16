@@ -12,7 +12,7 @@ import xarray as xr
 import numpy as np
 from datetime import datetime, timedelta
 
-mat = loadmat("/Volumes/science_share/gdwbc_CF_LS_sadcp_segments.mat", squeeze_me=True)
+mat = loadmat("/Users/nataliemcgee/Downloads/MB2026CTDdowncasts.mat", squeeze_me=True)
 
 print(mat.keys())
 

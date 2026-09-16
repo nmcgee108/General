@@ -23,9 +23,9 @@ warnings.filterwarnings("ignore", category=UserWarning, module="parcels")
 
 
 filenames = {
-    "U": "/Users/nataliemcgee/Desktop/Model Output/Uvel_202106.nc",
-    "V": "/Users/nataliemcgee/Desktop/Model Output/Vvel_202106.nc",
-    "W": "/Users/nataliemcgee/Desktop/Model Output/Wvel_202106.nc",
+    "U": "/Users/nataliemcgee/Desktop/Model Output/Uvel_202108.nc",
+    "V": "/Users/nataliemcgee/Desktop/Model Output/Vvel_202108.nc",
+    "W": "/Users/nataliemcgee/Desktop/Model Output/Wvel_202108.nc",
 }
 
 variables = {
@@ -38,6 +38,7 @@ dimensions = {"lat": "latitude", "lon": "longitude",
               "depth": "depths"
               }
 
+#start_date = np.datetime64('2021-06-01')
 start_date = np.datetime64('2021-06-01')
 
 # 1 file containing 30 daily timesteps

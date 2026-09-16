@@ -31,9 +31,9 @@ converted_oxy = ctd_oxy * 44.660 / ((1000 + sigma0) / 1000)  # mL/L → µmol/kg
 
 # ── End-member T / S / O values ───────────────────────────────────────────────
 T_AW,  S_AW,  O_AW  =  2.85, 34.6,  233.10
-T_PW,  S_PW,  O_PW  = 0, 34.1, 300 #0.55, 33.6, 270.13#-1.5,  33.2,  326.78
+T_PW,  S_PW,  O_PW  = -1.5,  33.2,  326.78 #0, 34.1, 300 #0.55, 33.6, 270.13
 T_SMW, S_SMW, O_SMW = -87.0,  0.0, 1050.0
-T_SGD, S_SGD, O_SGD =   0.0,  0.0,  457.0
+T_SGD, S_SGD, O_SGD =   0.0,  0.0, 457.0
 
 WM_INDEX = {"AW": 0, "PW": 1, "SMW": 2, "SGD": 3}  # used in solver + plot
 
@@ -170,7 +170,7 @@ def plot_TS(water_mass, casts, min_conc, max_conc, colormap):
     ax.set_xlabel("Absolute Salinity [g/kg]")
     ax.set_ylabel("Conservative Temperature [°C]")
     ax.set_xlim(32.5, 34.75)
-    ax.set_ylim(-0.25,  3.25)
+    ax.set_ylim(-2,  3.25)
     ax.legend(loc='upper left')
     ax.set_title(f"{water_mass} Fraction", fontweight='bold')
 
