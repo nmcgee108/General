@@ -15,11 +15,13 @@ import numpy as np
 import gsw
 
 uc_patch_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
+# ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/2026_upernavik_ctd.nc"
 
 ncfile = Dataset(uc_patch_file, 'r')
+#ncfile = Dataset(ctd_netcdf, 'r')
 
 #print all the variables and their dimensions:
-print(ncfile)
+#print(ncfile)
 
 #print the names (keys) of the variables
 #print(ncfile.variables.keys())
@@ -32,7 +34,6 @@ cast_num = ncfile.variables['Cast_Number'][:]
 date = ncfile.variables['Date'][:]
 flag = ncfile.variables['Flag'][:]
 
-
 depth_bin = ncfile.variables['Depth Bin'][:]
 SA = ncfile.variables['Absolute Salinity'][:]
 SP = ncfile.variables['Practical Salinity'][:]
@@ -44,6 +45,23 @@ turb = ncfile.variables['Turbidity'][:]
 fluor = ncfile.variables['Fluorescence'][:]
 oxy = ncfile.variables['Oxygen'][:]
 
+#  **** for 2026 ******
+
+# depth_bin = np.asarray(ncfile.variables["depth"])
+# SP = np.asarray(ncfile.variables["Sal"])
+# CT = np.asarray(ncfile.variables["Temp"])
+# lat = np.asarray(ncfile.variables["latitude"])
+# lon = np.asarray(ncfile.variables["longitude"])
+# pres = np.asarray(ncfile.variables["Pres"])
+# turb = np.asarray(ncfile.variables["Turb"])
+# oxy = np.asarray(ncfile.variables["Oxy"])
+
+# ctd_lons_b = lon[:, np.newaxis]   # shape (7, 1)
+# ctd_lats_b = lat[:, np.newaxis]   # shape (7, 1)
+
+# SA = gsw.SA_from_SP(SP, pres, ctd_lons_b, ctd_lats_b)
+
+# *********************
 
 ncfile.close()
 
@@ -91,37 +109,39 @@ for i in range(9):
     color = colormap(norm(dist))
     if i>=8: color = "black"
 
-    p = gsw.p_from_z(-depth_bin[i], lat[i])
+    p = gsw.p_from_z(depth_bin[i], lat[i])
     density = gsw.sigma0(SA[i], CT[i])
 
-    axes[0,1].plot(SA[i], -depth_bin[i], c=color)
     axes[0,0].set_ylabel("Depth [m]", fontsize = 14)
-    #axes[0,0].plot(SA[i], density, c=color)
-    #axes[0,0].set_ylabel("Density", fontsize = 12)
-    axes[0,1].set_xlabel("Absolute Salinity [g/kg]", fontsize = 14)
-    axes[0,0].axhspan(-425, -150, color = "lightskyblue", alpha = 0.06)
-    axes[0,0].axhspan(-250, -130, color = "pink", alpha = 0.06)
-    axes[0,1].grid(True)
-    axes[0,1].set_xlim(28,35)
-    #axes[0,1].set_ylim(-900, 0)
-    
-    
-
-    axes[0,0].plot(CT[i], -depth_bin[i], c=color)
+    axes[0,0].plot(CT[i], depth_bin[i], c=color)
     #axes[0,1].plot(CT[i], density, c=color)
     axes[0,0].set_xlabel("Conservative Temp [°C]", fontsize = 14)
-    axes[0,1].axhspan(-425, -150, color = "lightskyblue", alpha = 0.06)
-    axes[0,1].axhspan(-250, -130, color = "pink", alpha = 0.06)
+    axes[0,0].axhspan(425, 150, color = "lightskyblue", alpha = 0.06)
+    axes[0,0].axhspan(250, 130, color = "pink", alpha = 0.06)
     axes[0,0].grid(True)
     #axes[0,0].set_xlim(-2,4.5)
     axes[0,0].set_xlim(-2,4)
+    
+    
+    axes[0,0].set_ylim(0, 450)
+    axes[0,0].invert_yaxis()
 
 
-    axes[1,0].plot(turb[i], -depth_bin[i], c=color)
+    axes[0,1].plot(SA[i], depth_bin[i], c=color)
+    #axes[0,0].plot(SA[i], density, c=color)
+    #axes[0,0].set_ylabel("Density", fontsize = 12)
+    axes[0,1].set_xlabel("Absolute Salinity [g/kg]", fontsize = 14)
+    axes[0,1].axhspan(425, 150, color = "lightskyblue", alpha = 0.06)
+    axes[0,1].axhspan(250, 130, color = "pink", alpha = 0.06)
+    axes[0,1].grid(True)
+    axes[0,1].set_xlim(28,35)
+
+    axes[1,0].plot(turb[i], depth_bin[i], c=color)
     #axes[1,0].plot(turb[i], density, c=color)
-    axes[1,0].axhspan(-425, -150, color = "lightskyblue", alpha = 0.06)
-    axes[1,0].axhspan(-250, -130, color = "pink", alpha = 0.06)
+    axes[1,0].axhspan(425, 150, color = "lightskyblue", alpha = 0.06)
+    axes[1,0].axhspan(250, 130, color = "pink", alpha = 0.06)
     axes[1,0].set_xlabel("Turbidity [NTU]", fontsize = 14)
+
     axes[1,0].grid(True)
 
 
@@ -130,14 +150,14 @@ for i in range(9):
     
     axes[1,0].set_ylabel("Depth [m]", fontsize = 14)
 
-    axes[1,1].plot(oxy[i], -depth_bin[i], c=color)
+    axes[1,1].plot(oxy[i], depth_bin[i], c=color)
     #axes[1,1].plot(density, -depth_bin[i], c=color)
-    axes[1,1].vlines(26.98, -800, 0)
-    axes[1,1].vlines(27.43, -800, 0)
-    axes[1,1].axhspan(-425, -150, color = "lightskyblue", alpha = 0.06)
-    axes[1,1].axhspan(-250, -130, color = "pink", alpha = 0.06)
-    axes[1,1].vlines(26.95, -800, 0, color = "red")
-    axes[1,1].vlines(27.2, -800, 0, color = "red")
+    axes[1,1].vlines(26.98, 800, 0)
+    axes[1,1].vlines(27.43, 800, 0)
+    axes[1,1].axhspan(-425, 150, color = "lightskyblue", alpha = 0.06)
+    axes[1,1].axhspan(-250, 130, color = "pink", alpha = 0.06)
+    axes[1,1].vlines(26.95, 800, 0, color = "red")
+    axes[1,1].vlines(27.2, 800, 0, color = "red")
     #axes[1,1].set_xlabel("Density", fontsize = 14)
     axes[1,1].set_xlim(6, 10)
     axes[1,1].set_xlabel("Oxygen [ml/l]")

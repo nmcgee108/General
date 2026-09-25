@@ -16,19 +16,40 @@ import matplotlib.colors as mcolors
 
 plt.rcParams['font.size']=14
 
-ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
+# ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/Padded CTD Datasets/uc_patch_dataset_padded.nc"
+ctd_netcdf = "/Users/nataliemcgee/Documents/Upernavik Data/2026_upernavik_ctd.nc"
 nutrients_file = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Nutrients/NutrientsUS2024_plotting.csv", encoding="latin-1")
 
 ctd_ds = xr.open_dataset(ctd_netcdf)
 
-cast_range = (2, 8)  # Enter casts of interest
+# cast_range = (2, 8)  # Enter casts of interest
+
+# ctd_depth = ctd_ds["depth"].values
+# ctd_sal = ctd_ds["SAL_ABSOLUTE"][cast_range[0]-1:cast_range[1]].values
+# ctd_temp = ctd_ds["CONSERVATIVE_TEMP"][cast_range[0]-1:cast_range[1]].values
+# ctd_lats = ctd_ds["LAT"][cast_range[0]-1:cast_range[1]].values
+# ctd_lons = ctd_ds["LON"][cast_range[0]-1:cast_range[1]].values
+# ctd_turb = ctd_ds["TURBIDITY"][cast_range[0]-1:cast_range[1]].values
+# ctd_castnums = ctd_ds["cast"][cast_range[0]-1:cast_range[1]].values
+
+# ****** 2026 start
+cast_range = (4, 9)  # Enter casts of interest
 
 ctd_depth = ctd_ds["depth"].values
-ctd_sal = ctd_ds["SAL_ABSOLUTE"][cast_range[0]-1:cast_range[1]].values
-ctd_temp = ctd_ds["CONSERVATIVE_TEMP"][cast_range[0]-1:cast_range[1]].values
-ctd_lats = ctd_ds["LAT"][cast_range[0]-1:cast_range[1]].values
-ctd_lons = ctd_ds["LON"][cast_range[0]-1:cast_range[1]].values
-ctd_castnums = ctd_ds["cast"][cast_range[0]-1:cast_range[1]].values
+ctd_psal = ctd_ds["Sal"][cast_range[0]-1:cast_range[1]].values
+ctd_temp = ctd_ds["Temp"][cast_range[0]-1:cast_range[1]].values
+ctd_lats = ctd_ds["latitude"][cast_range[0]-1:cast_range[1]].values
+ctd_lons = ctd_ds["longitude"][cast_range[0]-1:cast_range[1]].values
+ctd_pres = ctd_ds["Pres"][cast_range[0]-1:cast_range[1]].values
+ctd_turb = ctd_ds["Turb"][cast_range[0]-1:cast_range[1]].values
+#ctd_castnums = ctd_ds["cast"][cast_range[0]-1:cast_range[1]].values
+
+ctd_lons_b = ctd_lons[:, np.newaxis]   # shape (7, 1)
+ctd_lats_b = ctd_lats[:, np.newaxis]   # shape (7, 1)
+
+ctd_sal = gsw.SA_from_SP(ctd_psal, ctd_pres, ctd_lons_b, ctd_lats_b)
+
+# ****** 2026 end
 
 sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
 
@@ -59,7 +80,7 @@ lon_ref, lat_ref = ctd_lons[2],ctd_lats[2] # Innermost station is cast 4 (index 
     
 ctd_distances = []
 
-for i in range(len(ctd_castnums)):  
+for i in range(len(ctd_lats)):  
     distance = find_distance(ctd_lats[i], ctd_lons[i], lat_ref, lon_ref)
     ctd_distances.append(distance)
 
@@ -69,6 +90,10 @@ min_dist = min(ctd_distances)
 dist_colormap = plt.colormaps['viridis'] # Choose colormap
 dist_norm = mcolors.Normalize(vmin=min_dist, vmax=max_dist)  # Normalize the colormap with a max and min value
 dist_sm = plt.cm.ScalarMappable(cmap=dist_colormap, norm=dist_norm)   # Creates coloring capabilities based on numerical values
+
+turb_colormap = plt.colormaps['cividis']
+turb_norm = mcolors.Normalize(vmin=0, vmax=1.5)
+turb_sm = plt.cm.ScalarMappable(cmap=turb_colormap, norm=turb_norm)
 
 # Make plot
 fig, axes = plt.subplots(1, 1, figsize=(12, 10))
@@ -93,7 +118,8 @@ plt.clabel(contour, inline=True, manual=label_positions, fmt='%1.1f')
 # Add shaded contours
 filled = axes.contourf(
     S, T, PDEN,
-    levels=[27.05, 27.45],  # Just the range you want shaded
+    levels=[26.99, 27.45],  # 2024
+    # levels=[27.03, 27.36], #2026 
     colors='skyblue',  # Or use a colormap like cmap='Greys'
     alpha=0.3,             # Optional: make it slightly transparent
     extend='neither',       # Controls if arrows show on the ends
@@ -101,7 +127,8 @@ filled = axes.contourf(
 
 filled = axes.contourf(
     S, T, PDEN,
-    levels=[25.7, 26.8],  # Just the range you want shaded
+    levels=[25.7, 26.8],  # 2024
+    # levels=[25.7, 26.75],  #2026 
     colors='thistle',  # Or use a colormap like cmap='Greys'
     alpha=0.3,             # Optional: make it slightly transparent
     extend='neither',       # Controls if arrows show on the ends
@@ -110,11 +137,14 @@ filled = axes.contourf(
 # Mixing line params
 T_deepwater = 2.550228
 S_deepwater = 34.697933
+
+T_deepwater = 2.8
+S_deepwater = 34.7
+
+
 T_ice_eff = -90
     
 def runoff_line(x):
-    T_deepwater = 2.550228
-    S_deepwater = 34.697933
     slope = T_deepwater/S_deepwater
     return slope*x
 
@@ -131,15 +161,23 @@ axes.plot(sx, melting_line(sx), color ="pink", linestyle = "dashed",
 
 # Plot TS data
 
-for i in range(len(ctd_distances)):  
+for i in range(len(ctd_distances)-1, -1, -1):  
     color = dist_colormap(dist_norm(ctd_distances[i]))
-    axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5, label = ctd_castnums[i])
+    color = turb_colormap(turb_norm(ctd_turb[i]))
+    axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5)#, label = ctd_castnums[i])
 
 axes.set_xlabel("Absolute Salinity [g/kg]")
 axes.set_ylabel("Conservative Temperature [°C]")
-axes.set_xlim(33, 35)
-axes.set_ylim(-2, 4)
+axes.set_xlim(32.9, 34.85)
+axes.set_ylim(0, 3.8)
 
+# for depth in [220, 340]: # 2026
+# # for depth in [5, 300, 370]: # 2024
+#     # axes.scatter(ctd_sal[0][depth], ctd_temp[0][depth],  #2026
+#     axes.scatter(ctd_sal[1][depth], ctd_temp[1][depth], 
+#                  color = "red",
+#                  marker = "*", 
+#                  s = 200)
 
 #axes.legend(loc = "lower right")
 cbar = fig.colorbar(dist_sm, ax=axes, orientation='vertical')
@@ -147,30 +185,31 @@ cbar.set_label("Distance from Inner Station [km]")
 
 # Plot nutrient data
 
-colormap = plt.colormaps['YlGn']
-norm = mcolors.Normalize(vmin=0, vmax=18)
-sm_nitrate = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
+# colormap = plt.colormaps['YlGn']
+# norm = mcolors.Normalize(vmin=0, vmax=18)
+# sm_nitrate = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
 
-for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
-    if np.isin(sample_cast[j], ctd_castnums):
-        index = np.where(ctd_castnums==sample_cast[j])[0]
-        index = int(index[0])
+# for j in range(len(nitrate_value), 0, -1): #plot shallow samples first
+#     if np.isin(sample_cast[j], ctd_castnums):
+#         index = np.where(ctd_castnums==sample_cast[j])[0]
+#         index = int(index[0])
         
-        sal = ctd_sal[index][-sample_depth[j]]
-        temp = ctd_temp[index][-sample_depth[j]]
+#         sal = ctd_sal[index][-sample_depth[j]]
+#         temp = ctd_temp[index][-sample_depth[j]]
 
-        color = dist_colormap(dist_norm(ctd_distances[index]))
-        #axes.scatter(sal, temp, color=color, marker = "o", edgecolor = 'k', s=nitrate_value[j]*15+15, zorder=4)
+#         color = dist_colormap(dist_norm(ctd_distances[index]))
+#         #axes.scatter(sal, temp, color=color, marker = "o", edgecolor = 'k', s=nitrate_value[j]*15+15, zorder=4)
         
-        if sample_depth[j]==-100:
-            print(ctd_castnums[index], nitrate_value[j])
+#         if sample_depth[j]==-100:
+#             print(ctd_castnums[index], nitrate_value[j])
             
-# Plot solid cast 9
-c9_sal = ctd_ds["SAL_ABSOLUTE"][8].values
-c9_temp = ctd_ds["CONSERVATIVE_TEMP"][8].values
+# # Plot solid cast 9
+# c9_sal = ctd_ds["SAL_ABSOLUTE"][8].values
+# c9_temp = ctd_ds["CONSERVATIVE_TEMP"][8].values
     
-plt.scatter(c9_sal, c9_temp, color = 'red', s=5)
+# plt.scatter(c9_sal, c9_temp, color = 'red', s=5)
 
+# Plot solid cast 9
 
 
 

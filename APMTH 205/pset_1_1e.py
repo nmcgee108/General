@@ -1,28 +1,36 @@
 
-import math
+import numpy as np
+from scipy import linalg
 
 # We know that python uses IEEE double precision by default
 
-i = prev = 3/2
-
-     # Store the previous fl-pt here
-     # (Because the "overlap" is caused by a loss
-     # of precision, the values with the same 
-     # reciprocal should be consecutive)
-
-while i < 2:  
-
-    i = math.nextafter(i, 2.0)   # Iterates to the next fl-pt number
-    # i += 2**(-52)              # A hard-coded alternative for 3/2<i<2
+eps = 10**(-12)
     
-          
-    if 1/i == 1/prev:                       # If the recips. are equal:
-                                            
-        print(i.hex(), prev.hex())          # Print the hex representation
-        print(f"{i:.20f}", f"{prev:.20f}")  # Print the normal representation
-        
-        break                               # Stop looking once we find a pair
-        
-    prev = i           # Store the new "previous" value
+A = np.array([[eps, 2,3],
+             [5, 7, 11], 
+             [13, 17, 19]], dtype = float)
 
+def gaussian_elim(A): # Gaussian elimination without pivoting
     
+    n = len(A)
+    
+    U = A.copy()   # Don't modify the original matrix
+    
+    for j in range(n): 
+        
+        for i in range(j+1, n):
+            if U[j, j] == 0:
+                raise ZeroDivisionError("Zero pivot! need pivoting.")
+            
+            m_ij = U[i, j] / U[j, j] # Compute the multiplier
+            
+            U[i, :] = U[i, :] - m_ij * U[j, :] # Subtract m*row j from row i
+            
+            # print(U)  # To see every step
+            
+    return U
+             
+
+U = gaussian_elim(A)
+
+print(linalg.det(U), linalg.det(A))

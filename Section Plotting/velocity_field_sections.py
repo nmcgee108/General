@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 import xarray as xr
 from matplotlib.colors import CenteredNorm
 
-uvel_netcdf = "/Users/nataliemcgee/Desktop/Model Output/Uvel_202107.nc"
-vvel_netcdf = "/Users/nataliemcgee/Desktop/Model Output/Vvel_202107.nc"
+uvel_netcdf = "/Users/nataliemcgee/Desktop/Model Output/Uvel_202108.nc"
+vvel_netcdf = "/Users/nataliemcgee/Desktop/Model Output/Vvel_202108.nc"
 
 uvel_ds = xr.open_dataset(uvel_netcdf)
 vvel_ds = xr.open_dataset(vvel_netcdf)
@@ -35,14 +35,14 @@ def plot_section(ds, var, lons, lats):
     ).mean(dim="iterations")
 
     # plot using point index as x-axis (skip real distance calc for simplicity)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize = (10, 5))
     pcm = ax.pcolormesh(np.arange(len(lons)), ds["depths"], section.values,
                          shading="auto", cmap="RdBu_r", norm=CenteredNorm(vcenter=0.0))
     
     ax.set_xlabel("Point index along line")
     ax.set_ylabel("Depth (m)")
-    ax.set_ylim(0, 750)
-    ax.set_xlim(10, 200)
+    ax.set_ylim(0, 800)
+    ax.set_xlim(0, 400)
     ax.invert_yaxis()
     fig.colorbar(pcm, ax=ax, label=f"{var} (m/s)")
     plt.show()
@@ -55,8 +55,18 @@ def plot_section(ds, var, lons, lats):
 # lons = np.linspace(-54.53, -54.427, 200)
 # lats = np.linspace(72.98, 72.967, 200) # GLACIER N
 
-lons = np.linspace(-54.55, -54.49, 200)
-lats = np.linspace(72.850, 72.89, 200) # GLACIER S
+# lons = np.linspace(-54.55, -54.49, 200)
+# lats = np.linspace(72.850, 72.89, 200) # GLACIER S
+
+lons1=np.linspace(-54.57, -54.39, 200)
+lons2=np.linspace(-54.39, -54.57, 200)
+
+lats1=np.linspace(72.845, 72.962, 200)
+lats2=np.linspace(72.962, 72.988, 200)
+
+lons = np.concat((lons1, lons2))
+lats = np.concat((lats1, lats2))
+
 
 u_section = plot_section(uvel_ds, "Uvel", lons, lats)
 v_section = plot_section(vvel_ds, "Vvel", lons, lats)
