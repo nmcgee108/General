@@ -16,7 +16,7 @@ import gsw
 
 
 # Load the CTD NetCDF dataset
-ctd_file = "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
+ctd_file = "/Users/nataliemcgee/Documents/Upernavik Data/Final CTD Datasets/uc_patch_dataset_new.nc"
 
 with Dataset(ctd_file, 'r') as ncfile:
     
@@ -26,10 +26,10 @@ with Dataset(ctd_file, 'r') as ncfile:
     SA = np.ma.filled(ncfile.variables['Absolute Salinity'][:], np.nan)
     CT = np.ma.filled(ncfile.variables['Conservative Temp'][:], np.nan)
 
-file_list = [ "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Morven CTD Data 2013-2019/Morven Data - 2013.csv",
-             "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Morven CTD Data 2013-2019/Morven Data - 2015.csv",
-             "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Morven CTD Data 2013-2019/Morven Data - 2016.csv",
-             "/Users/nataliemcgee/Documents/GitHub/Upernavik-Project/Upernavik Data/Morven CTD Data 2013-2019/Morven Data - 2019.csv"]
+file_list = [ "/Users/nataliemcgee/Documents/Upernavik Data/Morven CTD Data 2013-2019/Single-Cast CSVs/Morven Data - 2013.csv",
+             "/Users/nataliemcgee/Documents/Upernavik Data/Morven CTD Data 2013-2019/Single-Cast CSVs/Morven Data - 2015.csv",
+             "/Users/nataliemcgee/Documents/Upernavik Data/Morven CTD Data 2013-2019/Single-Cast CSVs/Morven Data - 2016.csv",
+             "/Users/nataliemcgee/Documents/Upernavik Data/Morven CTD Data 2013-2019/Single-Cast CSVs/Morven Data - 2019.csv"]
 
 
 colors = plt.cm.managua(np.linspace(0, 1, 5))

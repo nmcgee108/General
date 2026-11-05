@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import math
 import pandas as pd
 import matplotlib.colors as mcolors
+from scipy.signal import savgol_filter
 
 plt.rcParams['font.size']=14
 
@@ -22,7 +23,7 @@ nutrients_file = pd.read_csv("/Users/nataliemcgee/Documents/Upernavik Data/Nutri
 
 ctd_ds = xr.open_dataset(ctd_netcdf)
 
-# cast_range = (2, 8)  # Enter casts of interest
+# cast_range = (2, 9)  # Enter casts of interest
 
 # ctd_depth = ctd_ds["depth"].values
 # ctd_sal = ctd_ds["SAL_ABSOLUTE"][cast_range[0]-1:cast_range[1]].values
@@ -33,7 +34,7 @@ ctd_ds = xr.open_dataset(ctd_netcdf)
 # ctd_castnums = ctd_ds["cast"][cast_range[0]-1:cast_range[1]].values
 
 # ****** 2026 start
-cast_range = (4, 9)  # Enter casts of interest
+cast_range = (4, 12)  # Enter casts of interest
 
 ctd_depth = ctd_ds["depth"].values
 ctd_psal = ctd_ds["Sal"][cast_range[0]-1:cast_range[1]].values
@@ -42,7 +43,7 @@ ctd_lats = ctd_ds["latitude"][cast_range[0]-1:cast_range[1]].values
 ctd_lons = ctd_ds["longitude"][cast_range[0]-1:cast_range[1]].values
 ctd_pres = ctd_ds["Pres"][cast_range[0]-1:cast_range[1]].values
 ctd_turb = ctd_ds["Turb"][cast_range[0]-1:cast_range[1]].values
-#ctd_castnums = ctd_ds["cast"][cast_range[0]-1:cast_range[1]].values
+# ctd_castnums = ctd_ds["cast"][cast_range[0]-1:cast_range[1]].values
 
 ctd_lons_b = ctd_lons[:, np.newaxis]   # shape (7, 1)
 ctd_lats_b = ctd_lats[:, np.newaxis]   # shape (7, 1)
@@ -52,6 +53,11 @@ ctd_sal = gsw.SA_from_SP(ctd_psal, ctd_pres, ctd_lons_b, ctd_lats_b)
 # ****** 2026 end
 
 sigma0 = gsw.sigma0(ctd_sal, ctd_temp)
+
+ctd_lats_b = ctd_lats[:, np.newaxis]
+
+n_squared, p_mid = gsw.Nsquared(ctd_sal, ctd_temp, ctd_pres, lat=ctd_lats_b, axis=1)
+n_squared_smooth= savgol_filter(n_squared, window_length=10, polyorder=1)
 
 # Extract nutrient data
 nitrate_value = pd.to_numeric(nutrients_file['NO3'][1:])
@@ -85,7 +91,7 @@ for i in range(len(ctd_lats)):
     ctd_distances.append(distance)
 
 max_dist = max(ctd_distances) 
-max_dist = 47
+max_dist = 60
 min_dist = min(ctd_distances) 
 dist_colormap = plt.colormaps['viridis'] # Choose colormap
 dist_norm = mcolors.Normalize(vmin=min_dist, vmax=max_dist)  # Normalize the colormap with a max and min value
@@ -94,6 +100,11 @@ dist_sm = plt.cm.ScalarMappable(cmap=dist_colormap, norm=dist_norm)   # Creates 
 turb_colormap = plt.colormaps['cividis']
 turb_norm = mcolors.Normalize(vmin=0, vmax=1.5)
 turb_sm = plt.cm.ScalarMappable(cmap=turb_colormap, norm=turb_norm)
+
+max_n2 = 5e-5
+n2_colormap = plt.colormaps['cividis'] # Choose colormap
+n2_norm = mcolors.Normalize(vmin=min_dist, vmax=max_n2)  # Normalize the colormap with a max and min value
+n2_sm = plt.cm.ScalarMappable(cmap=n2_colormap, norm=n2_norm) 
 
 # Make plot
 fig, axes = plt.subplots(1, 1, figsize=(12, 10))
@@ -116,23 +127,23 @@ label_positions = [(30.5, 4), (30.5, 2), (31.2, 1.5), (32, 2), (32.6, 2), (33.2,
 plt.clabel(contour, inline=True, manual=label_positions, fmt='%1.1f')
 
 # Add shaded contours
-filled = axes.contourf(
-    S, T, PDEN,
-    levels=[26.99, 27.45],  # 2024
-    # levels=[27.03, 27.36], #2026 
-    colors='skyblue',  # Or use a colormap like cmap='Greys'
-    alpha=0.3,             # Optional: make it slightly transparent
-    extend='neither',       # Controls if arrows show on the ends
-    )
+# filled = axes.contourf(
+#     S, T, PDEN,
+#     levels=[26.99, 27.45],  # 2024
+#     # levels=[27.03, 27.36], #2026 
+#     colors='skyblue',  # Or use a colormap like cmap='Greys'
+#     alpha=0.3,             # Optional: make it slightly transparent
+#     extend='neither',       # Controls if arrows show on the ends
+#     )
 
-filled = axes.contourf(
-    S, T, PDEN,
-    levels=[25.7, 26.8],  # 2024
-    # levels=[25.7, 26.75],  #2026 
-    colors='thistle',  # Or use a colormap like cmap='Greys'
-    alpha=0.3,             # Optional: make it slightly transparent
-    extend='neither',       # Controls if arrows show on the ends
-    )
+# filled = axes.contourf(
+#     S, T, PDEN,
+#     levels=[25.7, 26.8],  # 2024
+#     # levels=[25.7, 26.75],  #2026 
+#     colors='thistle',  # Or use a colormap like cmap='Greys'
+#     alpha=0.3,             # Optional: make it slightly transparent
+#     extend='neither',       # Controls if arrows show on the ends
+#     )
 
 # Mixing line params
 T_deepwater = 2.550228
@@ -161,15 +172,21 @@ axes.plot(sx, melting_line(sx), color ="pink", linestyle = "dashed",
 
 # Plot TS data
 
-for i in range(len(ctd_distances)-1, -1, -1):  
-    color = dist_colormap(dist_norm(ctd_distances[i]))
-    color = turb_colormap(turb_norm(ctd_turb[i]))
-    axes.scatter(ctd_sal[i], ctd_temp[i], color=color, s = 5)#, label = ctd_castnums[i])
+for i in range(len(ctd_distances)-1, -1, -1): 
+    if i >= 10:
+        axes.plot(ctd_sal[i], ctd_temp[i], color="k")
+        continue
+    #color = dist_colormap(dist_norm(ctd_distances[i]))
+    #color = turb_colormap(turb_norm(ctd_turb[i]))
+    color = n2_colormap(n2_norm(n_squared_smooth[i]))
+
+    # print(ctd_castnums[i])
+    axes.scatter(ctd_sal[i][1:], ctd_temp[i][1:], color=color, s = 5)#, label = ctd_castnums[i])
 
 axes.set_xlabel("Absolute Salinity [g/kg]")
 axes.set_ylabel("Conservative Temperature [°C]")
-axes.set_xlim(32.9, 34.85)
-axes.set_ylim(0, 3.8)
+axes.set_xlim(32.6, 34.9)
+axes.set_ylim(-1, 3.9)
 
 # for depth in [220, 340]: # 2026
 # # for depth in [5, 300, 370]: # 2024
@@ -203,13 +220,13 @@ cbar.set_label("Distance from Inner Station [km]")
 #         if sample_depth[j]==-100:
 #             print(ctd_castnums[index], nitrate_value[j])
             
-# # Plot solid cast 9
-# c9_sal = ctd_ds["SAL_ABSOLUTE"][8].values
-# c9_temp = ctd_ds["CONSERVATIVE_TEMP"][8].values
-    
-# plt.scatter(c9_sal, c9_temp, color = 'red', s=5)
-
 # Plot solid cast 9
+# c9_sal = ctd_ds["Sal"][10].values
+# c9_temp = ctd_ds["Temp"][10].values
+    
+# plt.plot(c9_sal, c9_temp, color = 'red')
+
+#Plot solid cast 9
 
 
 

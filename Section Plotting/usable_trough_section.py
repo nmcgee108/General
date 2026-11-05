@@ -54,6 +54,19 @@ oxy_percent = (converted_oxy / O2sol) * 100
 # print("O2sol range:", np.nanmin(O2sol), np.nanmax(O2sol))
 # print("% sat range:", np.nanmin(oxy_percent), np.nanmax(oxy_percent))
 
+ctd_lats_b = ctd_lats[:, np.newaxis]
+
+ctd_pres = gsw.p_from_z(-ctd_depth, ctd_lats_b)  # note the negative sign
+n_squared, p_mid = gsw.Nsquared(ctd_sal, ctd_temp, ctd_pres, lat=ctd_lats_b, axis=1)
+n_squared_smooth= savgol_filter(n_squared, window_length=20, polyorder=1)
+
+n_squared_smooth_padded = np.pad(
+    n_squared_smooth,
+    pad_width=((0, 0), (0, 1)),  # no padding on casts axis (56), 1 NaN at end of depth axis (1310 -> 1311)
+    mode="constant",
+    constant_values=np.nan
+)
+
 
 # Extract bathymetry section columns for plotting
 section_distances = bathymetry_file['Distance_km']  
@@ -121,6 +134,7 @@ section = xr.Dataset(
         "Absolute Salinity": (["distance", "depth"], ctd_sal[start_cast-1:end_cast]),
         "Conservative Temperature": (["distance", "depth"], ctd_temp[start_cast-1:end_cast]),
         "Fluorescence": (["distance", "depth"], ctd_fluor[start_cast-1:end_cast]),
+        "N_squared": (["distance", "depth"], n_squared_smooth_padded[start_cast-1:end_cast]),
         "Turbidity": (["distance", "depth"], ctd_turb[start_cast-1:end_cast]),
         "Oxygen": (["distance", "depth"], oxy_percent[start_cast-1:end_cast]),
         "Potential Density Anomaly": (["distance", "depth"], sigma0[start_cast-1:end_cast]),
@@ -317,10 +331,13 @@ ax.set_xlabel("Distance Along Section [km]")
 # Plot fluorescence section
 ########################################################################################
 
-f_min = 0
-f_max = 16
+# f_min = 0
+# f_max = 16
 
-whole_depth_fluor = False  ## ENTER WHETHER WHOLE DEPTH OR TOP SEVERAL METERS
+max_n2 = 8e-5
+min_n2 = 0
+
+whole_depth_fluor = True  ## ENTER WHETHER WHOLE DEPTH OR TOP SEVERAL METERS
 
 if whole_depth_fluor == True: 
     text_height = 60
@@ -336,15 +353,17 @@ else:
 # Build meshgrid
 X, Y = np.meshgrid(section["distance"], -section["depth"])
 
-levels = np.linspace(f_min, f_max, 300)
+levels = np.linspace(min_n2, max_n2, 300)
 
 fig, ax = plt.subplots(figsize=(12, 6))
-cf = ax.contourf(X, Y, section["Fluorescence"].T, levels=levels, norm=PowerNorm(gamma=0.6), cmap='RdYlGn')
-cbar = plt.colorbar(cf, ax=ax, format="%.2f")
-cbar.set_label(r"Chlorophyll Fluorescence [mg/m$^3$]", labelpad=15)
+cf = ax.contourf(X, Y, section["N_squared"].T, levels=levels, norm=PowerNorm(gamma=1), cmap='cividis', extend="max")
+cbar = plt.colorbar(cf, ax=ax)
+#cbar.set_label(r"Chlorophyll Fluorescence [mg/m$^3$]", labelpad=15)
+cbar.set_label(r"N^2", labelpad=15)
+
 
 # Overlay sigma0 contours
-sigma_levels = [26, 26.5, 27, 27.5, 28]
+sigma_levels = [26, 26.5, 26.75, 27, 27.25, 27.5, 27.75]
 smoothed_sigma = savgol_filter(section["Potential Density Anomaly"], window_length=15, polyorder=1)
 cs = ax.contour(X, Y, smoothed_sigma.T, levels=sigma_levels, colors='white', linewidths=0.7)
 
@@ -373,7 +392,7 @@ for j in range(len(sample_cast)-1, -1, -1): #plot shallow samples first
     
     size = nitrate_value[j]*10 + 10
     color = colormap(norm(nitrate_value[j]))
-    ax.scatter(ctd_distances[index], sample_depth[j], color=color, edgecolor = 'k', s= size, zorder=4)
+    # ax.scatter(ctd_distances[index], sample_depth[j], color=color, edgecolor = 'k', s= size, zorder=4)
 
     
 cbar_ax = fig.add_axes([0.95,0.1,0.02,0.78])
